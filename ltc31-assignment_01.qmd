@@ -1,0 +1,373 @@
+---
+title: "Assignment 01"
+author: "Leo Camino | ltc31"
+format: html
+editor: visual
+bibliography: references.bib
+---
+
+# First section: Demographic analysis of BioGrad Students - 2025
+
+## Un-ordered list with at least two levels:
+
+In the following list, I will present the names of students by country from the Cohort 25' that joined Duke for the [Biology Departmen at Duke](https://biology.duke.edu/):
+
+### Biology Cohort 25' Students by country
+
+-   United States of America 🇺🇸
+
+    -   Charlotte Meigs
+
+    -   Zöe Dietrich
+
+    -   Brendan Lan
+
+-   China 🇨🇳
+
+    -   Yuzhe Yuan
+
+    -   Alex Pei
+
+    -   Chang Liu
+
+-   India 🇮🇳
+
+    -   Sharan Sekar
+
+    -   Shreya Sarkar
+
+-   Ecuador 🇪🇨
+
+    -   Leo Camino
+
+Summary table:
+
+| Name            | Country                  | Cohort |
+|-----------------|--------------------------|--------|
+| Charlotte Meigs | United States of America | 25'    |
+| Zöe Dietrich    | United States of America | 25'    |
+| Brendan Lan     | United States of America | 25'    |
+| Yuzhe Yuan      | China                    | 25'    |
+| Alex Pei        | China                    | 25'    |
+| Chang Liu       | China                    | 25'    |
+| Sharan Sekar    | India                    | 25'    |
+| Shreya Sarkar   | India                    | 25'    |
+| Leo Camino      | Ecuador                  | 25'    |
+| Yuzhe Yuan      | China                    | 25'    |
+
+## Ordered list with at least two levels:
+
+Here I provide a second list that presents the Cohort 25' students numbered by continent.
+
+### Biology Cohort 25' Students by continent
+
+1.  The Americas
+
+    1.  Charlotte Meigs
+
+    2.  Zöe Dietrich
+
+    3.  Brendan Lan
+
+    4.  Leo Camino
+
+2.  Asia
+
+    1.  Yuzhe Yuan
+
+    2.  Alex Pei
+
+    3.  Chang Liu
+
+    4.  Sharan Sekar
+
+    5.  Shreya Sarkar
+
+# Second section: A random interesting text
+
+Here I am writing this with the purpose of learning how to use *Italic,* **Bold**, and `verbatim` texts. Even though, I am proficient with the use of *Italic*, which involves only pressing ***"control"*** and ***"I"*** keys on Windows, I have no idea on how `monospaced texts work.` I have also used extensively **bold** words since I have worked a lot with text editors, such as Microsoft Word or Adobe InDesign. I guess `verbatim texts` are useful to explain something in text that involves sections of a code, for example:
+
+*"The following code says: `sqrt(6) + 6!`."*
+
+This could be specially useful for me, in the context of generating code for reviewers that are not proficient with structural coloration Data Analysis. I often have to use spectral analysis tools in R such as as Pavo2 [^1]. Being able to describe them on text with verbatim characters will give very important for me.
+
+[^1]: Pavo2 Original paper:
+
+    <https://besjournals.onlinelibrary.wiley.com/doi/full/10.1111/2041-210X.13174>
+
+# Third section: Numerical Operations
+
+## Section 3.2. Arithmetic Operations
+
+```{r}
+
+10 + 2 
+```
+
+**Addition:** I think this doesn't require a big explanation. One of the most basic arithmetic operations. A sum of two numbers adds both of them. Very romantic \<3.
+
+```{r}
+
+10 - 2
+```
+
+**Subtraction:** sometimes relationships don’t work out. Ten decided it’s better off without two, leaving it with 8.
+
+```{r}
+
+10 * 2
+```
+
+**Multiplication:** ten got ambitious, doubled its efforts, and became 20.
+
+```{r}
+10 / 2 
+```
+
+**Division:** ten decided to share equally with two. Both get 5. Sharing is caring!
+
+```{r}
+10 ^ 2
+```
+
+**Exponentiation:** ten flexed its power by raising itself to 2. That’s 100. Pure muscle
+
+```{r}
+10 ** 2
+```
+
+**Double asterisks** do the same as above. Ten still ends up at 100. Just another way to exponentiation. I am wondering if they made this for people that were unable to find the "\^" ASCII Code.
+
+```{r}
+10 %% 3 
+
+```
+
+**Modulo:** ten tried dividing by three, but three goes in only three times… leaving a lonely 1. That is the one we see here!
+
+```{r}
+10 %/% 3
+```
+
+**Integer division:** ten split itself into threes as many whole times as possible. It managed 3 times. The decimal wen somewhere, but it is not present in this code anymore hehe.
+
+## Section 3.3. Complex Arithmetic Operations
+
+```{r}
+(10 + 2)/4-5  
+```
+
+The way this works is:
+
+-   `a =``(10 + 2)`
+
+-   `b = 4`
+
+-   `c = 5`
+
+We have the following structure: **`a/(b - c).`**
+
+For this reason, 12/4 = 3. This means a/b = 3.
+
+Now, to solve a/b - c we have to replace like = 3 - (5), which is equal to -2. Perfect sense.
+
+```{r}
+(10 + 2)/(4-5) 
+```
+
+In this case, we have a different format.
+
+`a = (10 + 2)`
+
+`b = (4 - 5)`
+
+We are asked to solve a/b here. Solving all the parentheses first:
+
+a = 12; b = -1.
+
+12/(-1) = -12.
+
+I think this makes perfect sense and shows why parentheses syntax must be correct in order to achieve the desired solution.
+
+## Section 3.4. Other Numerical Operations
+
+```{r}
+sqrt(10)
+```
+
+`sqrt(10)` computes the square root of 10.
+
+```{r}
+10 ^ 0.5
+```
+
+`10 ^ 0.5` is another way of writing the square root of 10. It gives the same result as `sqrt(10)`.
+
+```{r}
+log(10)
+```
+
+`log(10)` returns the natural logarithm of 10 (base *e*).
+
+```{r}
+log10(10)
+```
+
+`log10(10)` returns the logarithm of 10 with base 10.
+
+```{r}
+exp(1)
+```
+
+`exp(1)` calculates *e* raised to the power of 1, which equals the constant *e* (\~2.718).
+
+```{r}
+abs(-10)
+```
+
+`abs(-10)` returns the absolute value of -10, which is 10.
+
+```{r}
+sin(3.14)
+```
+
+`sin(3.14)` calculates the sine of 3.14. Since 3.14 approximates π, the result is close to 0.
+
+```{r}
+cos(3.14)
+```
+
+`cos(3.14)` calculates the cosine of 3.14, which is close to -1 because 3.14 approximates π.
+
+```{r}
+pi
+```
+
+I think `pi` explains itself: pi = 3.1416...
+
+```{r}
+sin(pi)
+```
+
+`sin(pi)` returns a value very close to 0. I guess because of decimal computation it calculates a value close to zero, but not zero.
+
+```{r}
+cos(pi)
+```
+
+`cos(pi)` returns exactly -1, I guess somehow the decimals in this case didn't affect the final result.
+
+## Section 3.5. Irrational numbers
+
+```{r}
+1/0
+
+```
+
+`1/0` evaluates to positive infinity (`Inf`) in R.\
+This represents a number growing beyond any finite bound.
+
+```{r}
+-1/0
+
+```
+
+`-1/0` evaluates to negative infinity (`-Inf`).\
+It indicates a value decreasing without bound.
+
+```{r}
+0/0
+```
+
+`0/0` is undefined mathematically. It returns `NaN` (Not a Number) to represent an indeterminate or invalid result.
+
+## Section 3.6. Binary Relational Operators 
+
+```{r}
+10 > 2
+```
+
+10 is bigger than 2, therefore it is true.
+
+```{r}
+10 < 2
+```
+
+10 is not smaller than 2, therefore it is false.
+
+```{r}
+10 < (2 * 5)
+```
+
+10 is not smaller than ten (which is the result between the parentheses). It is False!
+
+```{r}
+10 <= (2 * 5)
+```
+
+Same as before, but considering the symbol is "smaller or equal", in this case it is correct, because 10 = 10.
+
+```{r}
+10 >= (3 * 3)
+```
+
+This is also correct, because 10 is bigger than 9.
+
+```{r}
+10 == (2 * 5)
+```
+
+The expression checks whether 10 is equal to 2 \* 5.\
+Since 2 \* 5 evaluates to 10, the comparison is true.
+
+```{r}
+10 != (2 * 6)
+```
+
+The expression checks whether 10 is not equal to 2 \* 6.
+Since 2 \* 6 equals 12, and 10 is not equal to 12, the result is true.
+
+## Section 3.8. Surprising results
+
+```{r}
+sqrt(4)
+```
+
+The square root of 4 is 2. Not surprising if you are in 2025. Maybe very surprising around IV century.
+
+```{r}
+sqrt(10)
+```
+
+The square root of 10 is an irrational number, approximately 3.162278.
+
+```{r}
+
+sqrt(4)^2
+```
+
+Squaring the square root of 4 gives back 4.
+
+```{r}
+sqrt(10)^2
+```
+
+Same as the last result.
+
+```{r}
+sqrt(4)^2 == 4
+```
+
+This comparison returns true because squaring the square root of 4 gives exactly 4
+
+```{r}
+sqrt(10)^2 == 10
+```
+
+This is very confusing. It may return false because of small floating-point errors. Computers have a hard time representing irrational numbers.
+
+```{r}
+all.equal(sqrt(10)^2, 10) # look up help for all.equal
+```
+
+all.equal() checks if two numbers are nearly equal within a small tolerance. Here it returns TRUE, showing that sqrt(10)\^2 is effectively equal to 10 despite tiny rounding errors.
