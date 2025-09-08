@@ -1,0 +1,314 @@
+---
+title: "Assignment 02"
+author: "Leo Camino | ltc31"
+format: html
+editor: visual
+bibliography: references.bib
+---
+
+## Working with Atomic Vectors
+
+1.  If you combine values representing multiple data types during assignment, R will coerce them into the most general data type that makes sense. Use `typeof()` to check what data types the following assignments create. Did any of the data types or 8 surprise you? What is the most general data type of all (the one into which every other data type can be successfully coerced)?
+
+    ```{r}
+    v1 <- c(27L, 3.14159, 42)
+    v2 <- c(TRUE, 1, 0, 66, FALSE)
+    v3 <- c(2.0, 2L, "2", "two")
+    v4 <- c("FALSE", 0, FALSE)
+    ```
+
+```{r}
+typeof(v1)
+typeof(v2)
+typeof(v3)
+typeof(v4)
+```
+
+When combining different data types in a single vector, R automatically categorizes them into the most general data type that can represent all elements. For example, v1 is coerced to "double" because mixing integers and doubles promotes everything to doubles. In v2, logical values like true or false are coerced to numbers (1, 0), so the result is also "double". In v3, the presence of character strings forces all numeric values to become text, producing a "character" vector. Similarly, in v4, mixing characters, numbers, and logical values results in everything being coerced to "character". The overall coercion hierarchy in R seems to be: `logical/integer/double/character`, with character being the most general data type because any other type can be represented as text.
+
+2.  Logical vectors are surprisingly useful, as we will see from examples during the next few weeks. For now, let’s get comfortable with the ways the R handles values that converted to logical. Run each statement below and try substituting other values. What are the values that can be stored in logical vectors? What are the rules for coercion of other data types into logical vectors when using the `as.logical()` function? This is an unusual case where we want you to figure it out completely on your own and *not* use the help function in RStudio, the web, or friends. Just experiment: this is one of the best ways to become a more proficient programmer.
+
+    ```{r}
+    v5 <- c(TRUE, T, FALSE, F, NA)
+    v6 <- c("true", "t", "false", "f", "na")
+    v7 <- c("TRUE", "T", "FALSE", "F", "NA")
+    v8 <- as.logical(c(101, -1, 0, 7))
+    v9 <- as.logical(c("hello", "", 'world', ''))
+    v10 <- as.logical()
+    v11 <- as.logical(NA)
+    ```
+
+`v5` stores standard logical values. T and F are shortcuts of True and False. NA means no logical value.
+
+`v6` Didn't work as the values are not recognized of R or form part of a variable. had to make them strings to make this variable work.
+
+`v7` Character strings, not logicals. "T" is not the same as T.
+
+`v8` produces `TRUE TRUE FALSE TRUE`. This makes me think that as.logical causes that any `0` value is considered as `FALSE`, while any number different from zero will be recognized as `TRUE`. For example, when changing the last value from `1` to `7`, it started working.
+
+`v9` makes the coercion rules to go from characters to logical. This means `"TRUE"` or `"T"` is treated as `TRUE`.
+
+`v10` This is an empty logical vector with length = 0.
+
+`v11` This is a single missing local value: `NA`.
+
+3.  Sometimes it’s useful to generate a vector composed of a pattern of numbers. Below are some assignment statements that automatically generate numeric vectors. Evaluate each statement, then try substituting values to understand how each works. Based on your experimentation, explain the limitations of the colon operator `:` to generate numeric vectors. Next, write a brief definition of the functions `seq()` and `rep()`, including how each argument contributes to the overall pattern. As with question 2 above, we want you to figure this out on your own through experimentation.
+
+    **Colon operator**
+
+    ```{r}
+    p1 <- 1:11
+    p2 <- 5:-5
+    ```
+
+    It generates a sequence of integers from start to end. However, it works with steps of 1 or -1. For example, `1:5` will produce a `1, 2, 3, 4, 5` vector, but when trying to do the same for `1:5.5`, this will generate a `1, 2, 3, 4, 5` with decimals truncated.
+
+4.  **seq()**
+
+    ```{r}
+
+    p3 <- seq(0, 200, by = 5)
+    p4 <- seq(20, 10, by = -1.5)
+    ```
+
+    This function generates a numeric sequence with more flexibility when compared to the colon operator. It uses the argument `from`(starting value), `to`(final value), and `by`(increment). In `p4`, for example, the vector increases by `0.5`. This makes it more flexible when producing sequences of data.
+
+5.  **rep()**
+
+    ```{r}
+    p5 <- rep(c(1:5), times = 3)
+    p6 <- rep(c(3,5,7), each = 3)
+    ```
+
+    The `rep()` function repeats the values of a vector. For instance, `p5` is repeating the vector `1 2 3 4 5`, three times, generating a vector that contains `1 2 3 4 5 1 2 3 4 5 1 2 3 4 5`.
+
+    In summary, the colon operator `:` is a quick way to generate sequences of integers but is limited to steps of 1 or -1. For more flexible sequences, including fractional steps or a specified number of elements, the `seq()` function is preferable. The `rep()` function is useful for repeating entire vectors or individual elements, controlled by the `times` or `each` arguments. Together, `seq()` and `rep()` allow creation of complex numeric patterns efficiently.
+
+<!-- -->
+
+4.  Square-bracket indexing can be used on either side of an assignment statement to access specific items in an atomic vector. Evaluate the assignment statement below to create atomic vector `my_vec`. Update the `9999` value in `my_vec` to `NA` (for context, some programs use `9999` to represent missing data, so this is a real world operation that you may need to use). Then add extend the length of `my_vec` by adding two new values: `6` and `3`. Next, extract just the second, third, and fifth items and store them in a new vector called `new_vec`. Finally, replace all the `NA` values in `your_vec` with the value `0`.
+
+    ```{r}
+    my_vec <- c(3, 4, 7, 9999, 2, 9)         # 9999 sometimes represents missing data!
+    your_vec <- c(55, NA, 52, 58, NA, NA, 49, 60, NA)
+
+    # 1. Replace 9999 in my_vec with NA
+    my_vec[my_vec == 9999] <- NA
+    my_vec
+
+    # 2. Extend my_vec by adding 6 and 3
+    my_vec <- c(my_vec, 6, 3)
+
+    # 3. Extract 2nd, 3rd, and 5th items into new_vec
+    new_vec <- my_vec[c(2, 3, 5)]
+    print(new_vec)
+
+    # 4. Replace all NA values in your_vec with 0
+    your_vec[is.na(your_vec)] <- 0
+
+    #5. test my_vec
+    print(your_vec)
+    ```
+
+On this section: `my_vec[my_vec == 9999] <- NA`, I am asking R to modify all `9999` values to `NA`. `c(my_vec, 6, 3)` concatenates new elements to the end of the vector as asked in the second section of the problem. Then, `my_vec[c(2, 3, 5)]` selects the 2nd, 3rd, and 5th elements and stores them in `new_vec`. Finally, `your_vec[is.na(your_vec)] <- 0` identifies all `NA` entries and replaces them with 0. By this way `your_vec` stores `55  0 52 58  0  0 49 60  0`.
+
+## Working with Atomic Vectors
+
+5.  Evaluate the expression below to create `my_list`, then use `length()` to learn how many items are in it. What does R consider to be an item in a list? Next, separately extract the second item in `my_list` using `[ ]` and `[[ ]]` and assign each to a new variable. How does the method of indexing affect the type of the extracted data? Now try converting the two new variables into a floating point atomic vector using the function `as.double()`. Why does this only work with one of them?
+
+    ```{r}
+    # Create the list
+    my_list <- list(27, c(1:5), "banana", c(FALSE, FALSE, TRUE, FALSE, TRUE))
+
+    # 1. Check the number of items in the list
+    length(my_list)   # returns 4
+
+    # 2. Extract the second item using [ ] and [[ ]]
+    second_item_brackets <- my_list[2]   # returns a sublist
+    second_item_double <- my_list[[2]]   # returns the atomic vector
+
+    # 3. Check the types of the extracted items
+    typeof(second_item_brackets)   # "list"
+    typeof(second_item_double)     # "integer"
+
+    # 4. Convert to double
+    
+    #as.double(second_item_brackets)   # fails, cannot convert a list
+    as.double(second_item_double)     # works, converts integer vector to double
+    ```
+
+`my_list` has 4 items, as R counts each top-level element in a list as a single item. Using `[ ]` returns a sublist, preserving the list structure, while `[[ ]]` extracts the actual element. Only atomic vectors can be converted to numeric with `as.double()`, so conversion works for `second_item_double` (the extracted vector) but fails for `second_item_brackets` (the sublist).
+
+6.  Named lists provide another method of indexing. Create the list `study_sites` using the first statement below. Extract the information for the `grassy_meadow` study site using its name and assign it to a new variable. Now extract just the elevation (first item) and assign it to a different variable. If you wanted to compute the average elevation, this would be an awkward process. It’s usually much easier to work with data like these when they are in a data frame rather than a list of lists.
+
+    ```{r}
+    study_sites <- list("windy_ridge" = list(2235, "grassland"), 
+                        "pine_valley" = list(1450, "forest"),
+                        "stoney_creek" = list(900, "stream"),
+                        "grassy_meadow" = list(1670, "grassland"),
+                        "oak_glen" = list(1302, "forest"))
+
+    # Extract the full information for grassy_meadow
+    grassy_info <- study_sites[["grassy_meadow"]]
+    grassy_info
+
+    # Extract just the elevation (first item)
+    grassy_elevation <- study_sites[["grassy_meadow"]][[1]]
+    grassy_elevation
+    ```
+
+Named lists in R let you get elements by their names instead of numbers. For example, in the `study_sites` list, `study_sites[["grassy_meadow"]]` gives all the information for that site, including elevation and habitat. To get just the elevation, you can use `[[1]]` after that to pick the first element. This shows that named lists are flexible, but it is not easy to do calculations, like finding the average elevation, with a list of lists. That is why data frames are usually easier to work with for organized data.
+
+7.  Many functions return lists as their output. You will often want to extract specific values from those lists for plotting or further processing. Evaluate the assignment statements below. Inspect `sample1` and `sample2` and access help to understand what the `rnorm()` function does. Next, carry out a t-test and display the default results. To access individual items as needed, start by assigning the results to the variable `test_results`. Use `names()` to show the names of the values stored in the list that is returned. Using this information, use dollar-sign indexing to assign the p-value and the confidence interval to separate values.
+
+    ```{r}
+    # Generate example data
+    sample1 <- rnorm(10, mean = 0, sd = 1)
+    sample2 <- rnorm(10, mean = 0.5, sd = 1)
+
+    # Perform a t-test and save to variable
+    test_results <- t.test(sample1, sample2)
+
+    # Display default t-test results
+    test_results
+
+    # See the names of items in the result list
+    names(test_results)
+
+    # Extract p-value and confidence interval
+    p_value <- test_results$p.value
+    conf_interval <- test_results$conf.int
+    ```
+
+I first generated two sets of random numbers using the `rnorm()` function, which creates numbers from a normal distribution with a specified mean and standard deviation. I then performed a t-test using `t.test()` to compare the means of the two samples. The t-test returned a list containing several values, such as the test statistic, p-value, confidence interval, and estimates of the sample means. I used `names()` to see all the items stored in the list, and then extracted the p-value and confidence interval separately using the `$` operator. This shows how I can access specific pieces of information from a function that returns a list for further analysis or reporting.
+
+## Practice with dplyr
+
+### **Data set: NC Births**
+
+The questions below use a data set that contains information on 150 cases of mothers and their newborns in North Carolina in 2004. This data set is available at the following URL:
+
+-   https://github.com/Bio723-class/example-datasets/raw/master/nc-births.txt
+
+This file is formatted as Tab-Separated Values (TSV). The variables in the data set are:
+
+-   father’s age (`fAge`),
+
+-   mother’s age (`mAge`),
+
+-   weeks of gestation (`weeks`)
+
+-   whether the birth was premature or full term (`premature`)
+
+-   number of OB/GYN visits (`visits`)
+
+-   mother’s weight gained in pounds (`gained`)
+
+-   babies birth weight in pounds (`weight`)
+
+-   sex of the baby (`sexBaby`)
+
+-   whether the mother was a smoker (`smoke`).
+
+**dplyr problems**
+
+8.  Write a code block showing how to load the `nc-births.txt` data.
+
+9.  Write a code block showing how to create a derived data frame with the `gained` column removed, and assign it to a variable `births_trimmed`.
+
+10. Show how to compute the dimensions of `births_trimmed` (from the prior step).
+
+11. Write a code block that uses `mutate` to create a derived column `weight_kg` giving each babies weight in kilograms.
+
+12. Write a code block that shows how to use `arrange` to sort the data by the babies birth weight in ascending order.
+
+13. Starting with the output of the previous question, write a code block showing how generate a data frame with only the ten lightest babies.
+
+14. Write a code block showing how to use `filter` to get all the cases where the mother smoked and the father’s age was greater than 40.
+
+15. Generate a data frame with only the premature babies, and then remove the redundant “premature” column (this is no longer variable in your derived data)
+
+16. Using `groupby` and `summarize`, generate a data frame that gives the median birth weight of premature babies grouped by mother’s smoking status.
+
+**Solutions**
+
+> 8.  Write a code block showing how to load the `nc-births.txt` data.
+
+This section loads the data:
+
+```{r}
+library(dplyr)
+births <- read.delim("https://github.com/Bio723-class/example-datasets/raw/master/nc-births.txt", header = TRUE, sep = "\t")
+```
+
+> 9.  Write a code block showing how to create a derived data frame with the `gained` column removed, and assign it to a variable `births_trimmed`.
+
+Here I create births_trimmed by removing the extra column:
+
+```{r}
+births_trimmed <- births %>% select(-gained)
+```
+
+> 10. Show how to compute the dimensions of `births_trimmed` (from the prior step).
+
+Here I compute the dimensios of `births_trimmed`:
+
+```{r}
+dim(births_trimmed)
+```
+
+> 11. Write a code block that uses `mutate` to create a derived column `weight_kg` giving each babies weight in kilograms.
+
+Here I add a column that contains `weight` variable in kilograms:
+
+```{r}
+births_trimmed <- births_trimmed %>% mutate(weight_kg = weight * 0.453592)
+```
+
+> 12. Write a code block that shows how to use `arrange` to sort the data by the babies birth weight in ascending order.
+
+In this line I arrange the data by babies' birth weight in an ascending mode:
+
+```{r}
+births_sorted <- births_trimmed %>% arrange(weight)
+```
+
+> 13. Starting with the output of the previous question, write a code block showing how generate a data frame with only the ten lightest babies.
+
+This is the most optimized way I found to generate a data frame with the ten lightest babies only:
+
+```{r}
+ten_lightest <- births_sorted %>% slice_head(n = 10)
+```
+
+> 14. Write a code block showing how to use `filter` to get all the cases where the mother smoked and the father’s age was greater than 40.
+
+Here I filter cases where mother smoked while father's age is superior to 40:
+
+```{r}
+smoking_fathers40 <- births_trimmed %>% filter(smoke == "yes" & fAge > 40)
+```
+
+> 15. Generate a data frame with only the premature babies, and then remove the redundant “premature” column (this is no longer variable in your derived data)
+
+In this line I subset premature babies and remove `'premature'` column:
+
+```{r}
+premature_babies <- births_trimmed %>% filter(premature == "yes") %>% select(-premature)
+```
+
+> 16. Using `group_by` and `summarize`, generate a data frame that gives the median birth weight of premature babies grouped by mother’s smoking status.
+
+Here I analyze the median birth weight of premature babies grouped by mother’s smoking status:
+
+```{r}
+median_premature <- premature_babies %>%
+  group_by(smoke) %>%
+  summarize(median_weight = median(weight))
+```
+
+## **Data lunch assignment**
+
+Identify something that you learned from the presentation or discussion on Thursday that you found valuable. Provide a brief reflection here (1-5 sentences) and include code or pseudo-code if useful. Hint: if you have specific code examples, consider adding them to your notebook as well.
+
+I was very surprised to learn that Professor Greg Wray was born and raised in India, which is uncommon for someone who became prominent in the global north’s academic system. I was also struck by the type of school he attended, where he was constantly exposed to the natural world. As someone interested in philosophy, I found this fascinating in the context of the long-standing debate between *cultura* and *natura*, where humans often separate culture from nature. Professor Wray’s upbringing challenges these typical conceptions of modern education, showing how early exposure to nature can profoundly shape children’s curiosity and understanding. Personally, growing up in the global south with similar experiences has inspired my fascination with the complex shapes and forms found in nature. I think modern education should focus more on this type of early-exposure-to-nature system. There is enough research evidence showing humans as part of nature. This makes me wonder why not extend the same approach to young students?
