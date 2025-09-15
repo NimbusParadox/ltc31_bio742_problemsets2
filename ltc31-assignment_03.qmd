@@ -1,0 +1,103 @@
+---
+title: "Assignment 03"
+author: "Leo Camino - ltc31"
+format: html
+editor: visual
+---
+
+## **Problems**
+
+Using the [NC Births dataset](https://github.com/Bio723-class/example-datasets/raw/master/nc-births.txt), generate the following plots. For each plot use appropriate readable axis labels, colors, etc.
+
+1.  A scatter plot showing the relationship between weeks of gestation and birth weight, with points colored by birth status (premature vs full term).
+
+```{r}
+
+#First I load the files:
+
+data <- read.delim("C:/Users/leoto/Desktop/nc-births.txt")
+
+# Load libraries
+library(ggplot2)
+library(dplyr)
+
+data$premature <- factor(data$premature, levels = c("premie", "full term"))
+
+# Scatter plot
+ggplot(data, aes(x = weeks, y = weight, color = premature)) +
+  geom_point(alpha = 0.7, size = 2) +
+  scale_color_manual(values = c("premie" = "pink", "full term" = "skyblue")) +
+  labs(
+    title = "Birth Weight vs. Weeks of Gestation",
+    x = "Gestation (weeks)",
+    y = "Birth Weight (kg)",
+    color = "Birth Status"
+  ) +
+  theme_minimal(base_size = 14)
+
+```
+
+2.  A density plot showing the distribution of baby birth weights for smoking and non-smoking mothers. Use `geom_rug` to depict the marginal distributions.
+
+```{r}
+library(ggplot2)
+
+ggplot(data, aes(x = weight, fill = smoke, color = smoke)) +
+  geom_density(alpha = 0.4) +     
+  geom_rug(size = 0.5, alpha = 0.6) +  
+  scale_fill_manual(values = c("smoker" = "pink", "nonsmoker" = "skyblue")) +
+  scale_color_manual(values = c("smoker" = "pink", "nonsmoker" = "skyblue")) +
+  labs(
+    title = "Distribution of Baby Birth Weights by Maternal Smoking Status",
+    x = "Birth Weight (kg)",
+    y = "Density",
+    fill = "Smoking Status",
+    color = "Smoking Status"
+  ) +
+  theme_minimal(base_size = 14)
+```
+
+3.  A boxplot comparing birth weight for premature and full term babies, with mother’s smoking status indicated by color.
+
+```{r}
+library(ggplot2)
+
+ggplot(data, aes(x = premature, y = weight, fill = smoke)) +
+  geom_boxplot(alpha = 0.7, outlier.shape = 16) +
+  scale_fill_manual(values = c("smoker" = "pink", "nonsmoker" = "skyblue")) +
+  labs(
+    title = "Birth Weight by Birth Status and Maternal Smoking",
+    x = "Birth Status",
+    y = "Birth Weight (kg)",
+    fill = "Maternal Smoking"
+  ) +
+  theme_minimal(base_size = 14)
+```
+
+4.  Draw a scatter plot showing the relationship between mothers age and fathers age. Look up how to use `ggplot2::coord_fixed()` to insure that the x- and y-axes have a fixed ratio, and modify the plot limits to include the origin. Color the points by birth status.
+
+```{r, warning=FALSE}
+
+
+age_breaks <- seq(15, 50, by = 5)  # Here I add a sequence for ages that I will use later, from 15 to 50 in steps of 5.
+
+ggplot(data, aes(x = fAge, y = mAge, color = premature)) +
+  geom_point(size = 2, alpha = 0.7) +
+  scale_color_manual(values = c("premie" = "pink", "full term" = "skyblue")) +
+  scale_x_continuous(limits = c(15, max(data$fAge, na.rm = TRUE)), breaks = age_breaks) +
+  scale_y_continuous(limits = c(15, max(data$mAge, na.rm = TRUE)), breaks = age_breaks) +
+  labs(
+    title = "Mother vs Father Age by Birth Status",
+    x = "Mother's Age (years)",
+    y = "Father's Age (years)",
+    color = "Birth Status"
+  ) +
+  coord_fixed(ratio = 1) +   # fixed aspect ratio, making each point of x correspond to a point in y.
+  theme_minimal(base_size = 14)
+```
+
+## **Data lunch assignment**
+
+Identify something that you learned from the presentation or discussion on Thursday that you found valuable. Provide a brief reflection here (1-5 sentences) and include code or pseudo-code if useful. Hint: if you have specific code examples, consider adding them to your notebook as well.
+
+HIV patients are more susceptible to opportunistic infections due to their weakened immune systems. One serious infection affecting these patients is caused by the fungus Cryptococcus. When HIV-positive individuals become infected with Cryptococcus, their risk of mortality increases significantly. Studies report that 41% to 61% of HIV patients with Cryptococcus infection may die from the disease (Montoya *et. al*, 2025). This high mortality rate highlights the urgent need for early detection and effective treatment in these patients.
