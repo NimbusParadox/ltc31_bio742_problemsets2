@@ -1,0 +1,182 @@
+---
+title: "ltc31-assignment_04.qmd"
+author: "Leo Camino"
+format: html
+editor: visual
+---
+
+# **NC Births**
+
+Using the [NC Births dataset](https://github.com/Bio723-class/example-datasets/raw/master/nc-births.txt) (see last week’s HW for details), solve the following problems:
+
+1.  Write a code block that uses `count` to get the counts of cases by mother’s smoking status and the baby’s term status (premature or full term). That is, we want the output to tell us four pieces of information:
+
+**a. how many non-smoking mothers had full term babies?**
+
+```{r}
+
+library(dplyr)
+
+nc.births <- read.table("C:/Users/leoto/Desktop/nc-births.txt", header = TRUE, sep = "\t")
+
+nc.births |>
+  filter(smoke == "nonsmoker", premature == "full term") |>
+  count()
+```
+
+If we filter by non-smoker and full term babies, we find [87 cases]{.underline}.
+
+**b. how many non-smoking mothers had premature babies?**
+
+```{r}
+
+nc.births |>
+  filter(smoke == "nonsmoker", premature == "premie") |>
+  count()
+```
+
+When filtering the cases by non-smoker mothers that had premature babies, we can see [13 cases.]{.underline}
+
+**c. how many smoking mothers had full term babies?**
+
+```{r}
+nc.births |>
+  filter(smoke == "smoker", premature == "full term") |>
+  count()
+
+```
+
+When filtering the cases by smoker mothers that had full term babies, we see [42 cases.]{.underline}
+
+[**d. how many smoking mothers had premature babies?**]{.underline}
+
+```{r}
+nc.births |>
+  filter(smoke == "smoker", premature == "premie") |>
+  count()
+```
+
+Finally, when filtering smoker mothers that had premature babies, we see [8 cases.]{.underline}
+
+```{r}
+nc.births |>
+  group_by(smoke, premature) |>
+  summarize(median_weight = median(weight, na.rm = TRUE))
+```
+
+It is very interesting to see that even though it is small, there is a difference in `median_weight` between smoker and non-smoker results for both full term and premature babies.
+
+# **Penguins**
+
+Use the `penguins` data from the `palmerpenguins` package in the following problems:
+
+3.  `slice` is a dplyr function that allows you to index rows by their integer locations. Show how to use the `seq` function and slice to get every fifth row in the penguins data set.
+
+```{r}
+
+library(dplyr)
+library(palmerpenguins)
+
+penguins
+#This dataset has 344 rows.
+
+penguins |>
+  slice(seq(1, n(), by = 5))
+#After slicing, we get 69 rows.
+
+344/5
+#If we divide 344 rows by 5, we get 68.8 as a result. We are getting 69 rows, which means we are slicing the data properly.
+
+```
+
+4.  Read the help documentation for the dplyr function `slice_sample` and then write a pipeline uses `group_by` and `slice_sample` that selects 5 random individuals from each of the species in the penguins data set.
+
+```{r}
+library(dplyr)
+library(palmerpenguins)
+
+penguins |>
+  group_by(species) |> #this line splits the dataset by each penguin species (Adelie, Chinstrap & Gentoo)
+  slice_sample(n = 5) #here I randomly select 5 rows from each species group. 
+
+#The result is a tibble 15 x 8, with 5 random individuals per species. 
+#It is important to note that every time the code is run, it will provide a new random result. 
+```
+
+### **Factors from continuous data**
+
+The `cut` function is useful for turning numerical data into factors. The key arguments are the `breaks` specifying the intervals for binning the data and the `labels` indicating the factor categories you want to create.
+
+```{r}
+x <- 1:10
+x
+```
+
+```{r}
+factored_x <- cut(x, 
+                  breaks = c(0, 4, 7, 10), 
+                  labels = c("small","medium","large"),
+                  ordered_result = TRUE)
+factored_x
+```
+
+Use the [Yeast Colony Morphology](https://tinyurl.com/36h67mhm) data set to answer the following questions.
+
+A histogram of the `Flo11.expr` (FLO11 expression) from the yeast colony morphology data set hints at two or three modes in the distribution, as illustrated below:
+
+```{r}
+
+#I load the data here 
+library(readr)
+data <- read_csv("C:/Users/leoto/Desktop/seg_strain_table.csv")
+
+limit_breaks <- c(0, 100000, 300000, 700000)
+
+# Create the factored variable (for reference/analysis)
+factored_flo11 <- cut(data$Flo11.expr,
+                     breaks = limit_breaks,
+                     labels = c("Low", "Intermediate", "High"),
+                     ordered_result = TRUE)
+
+# Here I create the body for the histogram
+hist(data$Flo11.expr,
+     breaks = 10,
+     xlab = "FLO11 Expression",
+     ylab = "Frequency")
+
+# Here I add the red lines that limit the different expression sections.
+abline(v = limit_breaks[-1], col = "red", lwd = 2, lty = 2)
+
+# On this section, I add the labels in the middle of the sections just like the example.
+category_midpoints <- (limit_breaks[-length(limit_breaks)] + limit_breaks[-1]) / 2
+text(x = category_midpoints, 
+     y = max(hist(data$Flo11.expr, plot = FALSE)$counts) * 0.85,
+     labels = c("Low", "Intermediate", "High"),
+     col = "red", font = 2)
+
+```
+
+5.  Complete the following code to create an ordered factor with the categories “Low”, “Intermediate”, and “High”, indicating a coarse categorization of FLO11 expression as illustrated in the figure above:
+
+```{r}
+library(ggplot2)
+
+  data |>
+  mutate(Flo11.group = cut(
+    Flo11.expr,
+    breaks = c(0, 100000, 300000, max(Flo11.expr, na.rm = TRUE)),
+    labels = c("Low", "Intermediate", "High"),
+    ordered_result = TRUE
+  )) |>
+  filter(!is.na(Flo11.group)) |>
+  ggplot(aes(x = Flo11.group, y = Flo11.expr)) + 
+  geom_point(alpha = 0.5, position = position_jitter(width = 0.2)) + #decided to add some spread to see the data better using position_jitter.
+  labs(x = "FLO11 Factor", y = "FLO11 Expression") +
+  theme_minimal()
+```
+
+## **Data lunch assignment**
+
+Identify something that you learned from the presentation or discussion on Thursday that you found valuable. Provide a brief reflection here (1-5 sentences) and include code or pseudo-code if useful. Hint: if you have specific code examples, consider adding them to your notebook as well.
+
+Kayla mentioned some cells of *Cryptococcus neoformans* undergo dramatic enlargement, forming what are called titan cells. These titan cells can reach sizes many times larger than typical fungal cells, suggesting a unique biology. She is investigating whether these oversized cells engage in genetic recombination. Understanding recombination in titan cells could reveal how *C. neoformans* adapts and survives in host environments. This line of research may provide insights into pathogenicity, evolution, and potential targets for antifungal therapies. Very interesting and insightful class!
