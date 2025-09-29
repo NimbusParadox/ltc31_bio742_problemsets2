@@ -1,0 +1,143 @@
+---
+title: "Problem Set 05"
+author: "Leo Camino, ltc31"
+date: today
+date-format: iso
+format: 
+  html:
+    embed-resources: true
+editor: source
+---
+
+# **Wrangling a messy data set**
+
+Gasch AP, Spellman PT, Kao CM, Carmel-Harel O, Eisen MB, Storz G, Botstein D, Brown PO. Genomic expression programs in the response of yeast cells to environmental changes. Mol Biol Cell. 2000 Dec;11(12):4241-57. doi: 10.1091/mbc.11.12.4241. PMID: 11102521; PMCID: PMC15070.
+
+Gasch et al. (2000) is another “classic” gene expression data set from the early days of functional genomics. The file [`gasch1k.csv`](https://github.com/Bio724D/Bio724D_2024_2025/raw/refs/heads/main/data/gasch1k.csv) is a subset of the data from that study.
+
+A few notes about this data set:
+
+-   The first column of data describes the experimental conditions but this column has no header
+
+-   Subsequent columns are genes, with systematic gene IDs as headers
+
+-   The experimental conditions in the first column are not particularly consisten in terms of how they designate the conditions (and time points where appropriate)
+
+#### **Working with the Gasch data**
+
+Wrangle the data by carrying out the following steps, in order:
+
+1.  Import the data, fixing any column naming issues
+
+    ```{r}
+    library(tidyverse)
+
+    data <- read_csv("C:/Users/leoto/Desktop/gasch1k.csv")
+
+    colnames(data)[1] <- "condition"
+
+    colnames(data)[1]
+    ```
+
+2.  Remove any columns (genes) that have more than 10 missing values (‘NA’)
+
+    ```{r}
+    data_clean <- data[, colSums(is.na(data)) <= 10]
+
+    ncol(data_clean)
+    ncol(data)
+    ```
+
+3.  Subset the rows of the data set to include ONLY the experimental conditions that have time points on the scales of minutes (conditions with “min”, “minutes”, etc).
+
+    ```{r}
+
+    data_minutes <- data_clean[grepl("min|minute|minutes", data_clean$condition, ignore.case = TRUE), ]
+
+    nrow(data_clean)
+    nrow(data_minutes)
+    ```
+
+4.  Apply pivoting to create a “long” version of the data frame with “gene” and “expression” as their own columns.
+
+    ```{r}
+
+    library(tidyr)
+
+    data_long <- pivot_longer(
+      data_minutes,
+      cols = -condition,      
+      names_to = "gene",      
+      values_to = "expression"
+    )
+
+    head(data_long)
+
+    ```
+
+5.  CHALLENGING/ADVANCED: See if you can come up with a strategy for extracting the time information from the experimental condition column. The inconsistency of the naming scheme makes this a difficult and frustrating task. A verbal description of what steps you’d take to solve this problem is sufficient. If you manage to write code to solve this, your string wrangling skills are already quite strong!
+
+    I would first look at the `condition` column to see all the weird ways times are written, like `"1 min"`, `"5minutes"`, `"T10min"`, or `"after 15 mins"`. Then I would try to spot any patterns in how the numbers and the word “minutes” appear. After that, “I would look at the `condition` column, search for the part of the text that looks like a number followed by ‘min’ or ‘minutes’, and pull out that number.. Once I have those numbers, I would convert them to real numeric values so I can use them in plots or calculations. Finally, for any messy entries that don’t match the pattern, I would mark them as `NA` and maybe fix them manually if there aren’t too many.
+
+#### **Other problems**
+
+6.  Imagine a situation where you are working with data from a weather station. Each month, you receive a `.csv` file containing the latest data: one row for each day and 7 columns reporting the date, rainfall, minimum and maximum temperatures, etc. Because the data are always delivered in the same way, you decide to use `bind_rows()` to attach each month’s new data to your existing data frame. One month, you receive a `.csv` file that when merged generates a data frame with 11 columns instead of the expected 7. Upon examination of new `.csv` file, you discover that some of columns have been assigned slightly modified names.
+
+    a.  Why did this cause the merge operation to create additional columns?
+
+        `bind_rows()` simply stacks data frames by matching column names. If a column name in the new file is slightly different, R treats it as a new column. This is the reason why we ended up with 11 columns instead of 7, specifically because the mismatched columns got added as new ones.
+
+    b.  You could write some code to rename the columns before you merge each new data frame, and continue to use `bind_rows()` to append the data. However, this won’t protect you from future changes in column name.
+
+        Renaming the columns before merging would not be enough because it would only work once. If next month the file comes with different typos or variations, a renaming process will be required again. Sadly, this method is not future-mistakes-proof.
+
+    c.  How could using a join rather than a merge avoid this kind of problem in the future? What specific join method would be appropriate for this situation? Which column(s) would you use for the join?
+
+        Using a join instead of just stacking the data (like with `bind_rows()`) solves the problem because it aligns the data based on a key column, not on column names. In this case, the key column is `date`, since each row represents a different day. By using `full_join()` and telling R to join by `date`, it will combine the two data frames so that all the rows match correctly by date, even if the other columns have slightly different names or appear in a different order. Any new columns in the new month’s data will be added automatically, and missing values will appear as `NA`. This makes the merge much safer and future-proof compared to just stacking rows by name.
+
+    d.  Having thought through these considerations, provide sample code that implements a join to append the weather data.
+
+        ```{r}
+
+        #library(dplyr)
+        #library(readr)
+
+        # Load the data we already have here
+        #weather_all <- read_csv("weather_jan.csv")
+
+        # Then, we load the new data
+        #weather_feb <- read_csv("weather_feb.csv")
+
+        # Join by date
+        #weather_all <- full_join(weather_all, weather_feb, by = "date")
+
+        ```
+
+    e.  Would this method of appending monthly data work no matter how the columns are named? Would it work if the columns kept the same names but were present in a different order? Would it work if additional columns were added to the monthly data files?
+
+        This method works as long as the key column (`date`) exists and is consistent. It handles columns in any order and automatically includes new columns, filling in missing values with `NA`. However, if the names of existing columns change, the join won’t align them correctly and they would need to be renamed first.
+
+7.  Joins provide a useful way to combine data from two different data frames. Joins are also very commonly used to extract specific information by drawing from two data frames at once. To do this using `dplyr` tools, you can follow a join with `filter`, `arrange`, and/or `select` to create powerful queries. Using the `yeast_spellman-1998-expression.tsv` file used in class answer the following:
+
+    a.  How many yeast genes that are expressed in the nucleus show a decrease in gene expression in the “alpha7” experiment? To answer that question, left join the two data frames as we did in class, then pipe the result into a filter for “nucleus” in column `C`, then pipe that result into a filter for \<0 in column `alpha7`, then pipe that result into nrow(). Try it out! You should get 472.
+
+        ```{r}
+
+        #Each time I try to work on this section of the file I find the following error, no matter what I do: 
+
+                    #Error in -title : invalid argument to unary operator
+
+        #I don't know if it is my problem, but I have been unable to work on this.
+        ```
+
+    b.  Now use this approach to answer a few more questions. For each, write the entire process as a single pipe rather than a sequence of individual commands.
+
+    c.  How many ribosomal RNA genes increase in expression in both experiment `alpha7` and `alpha14`? (Hint: filter for “rRNA_gene” in column `gene_type`.)
+
+    d.  Which ribosomal RNA gene decreased in expression the most in experiment `alpha7`?
+
+    e.  How many genes that are not expressed in the nucleus increased in expression in `alpha7` and decreased in expression in `alpha14`?
+
+## **Data lunch assignment**
+
+Social polyandry is a type of social system where a female has several partners simultaneously, forming a family with several males. In Jacanas, males are the ones that do parental caring. In Jacanas, females are the ones who compete. Sarah Lipshutz found a lot of male biased genes. They found such a bias because of ZZ configuration of chromosomes on birds, just like butterflies. This is very interesting considering the proximity of both sexual chromosome architecture in birds and butterflies, as well as their complex behavior in courtship. This often involves complex cues such as sounds, colors and behavioral rituals. I think this would be very cool to be adapted in butterflies.
