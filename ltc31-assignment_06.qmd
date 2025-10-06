@@ -1,0 +1,113 @@
+---
+title: "Problem Set 06"
+author: "Leo Camino, ltc31"
+date: today
+date-format: iso
+format: 
+  html:
+    embed-resources: true
+editor: source
+---
+
+# Instructions
+
+Answer the questions below using code blocks that generate the correct outputs. We encourage you to include explanatory text in your markdown document, however **each of your solutions should show how to generate the answer using R code**.
+
+Write "robust" solutions wherever possible. A good rule of thumb for judging whether your solution is appropriately "robust" is to ask yourself "If I added additional observations or variables to this data set, or if the order of variables changed, would my code still compute the right solution?"
+
+Make sure your markdown is nicely formatted -- use headers, bullets, numbering, etc so that the structure of the document is clear.
+
+Make sure to "Render" your document before submission to confirm that all code blocks and formatting is as you expect.
+
+When completed, title your markdown file as follows (replace `XX` with the assignment number, e.g. `01`, `02`, etc):
+
+-   `netid_problemset_XX.qmd`
+
+Submit both your markdown file and the generated HTML document via the Assignments submission section on Sakai.
+
+# Problems
+
+#### **1. Locate a graphic in a publication that you think does *not* represent graphical excellence. Provide the reference and figure number. Download or grab a screenshot of the graphic and insert it into your homework notebook. Explain what is not great about the graphic and what you think could be done better.**
+
+![](images/clipboard-2827715573.png)
+
+This is *Figure 1* from the paper [*"Urban mixtures of non-essential trace metal elements affect the behaviour and stress levels of a passerine bird in a laboratory experiment"*](https://www.sciencedirect.com/science/article/pii/S0147651325009923) by Clément Parnet *et al.* (2025). I think this is a good example of a graph that obscures data. The first thing they do wrong is assuming statistical differences in these different treatments when they have such big error bars. The amount of outliers is a big alarm for me. The density of black dots screams heterogeneity. Either they have a few individuals behaving very differently (biologically interesting!) or there’s noise in measurement. Hiding that behind median comparisons weakens the data narrative. I would use instead violin plots to explore the nature of these data and being more sincere about the results. Secondly, I don't really like the color palette. Even though this is subjective, I think they could have used a more inclusive color palette. Also, I think the legend occupies a big chunk of space, I would relocate it inside the borders of the graph, in the section where there's space between purple and blue. Lastly, I think the way they show significant results through "a", "b", and "c", is very inefficient for a graph with only four treatments. I would go for asterisks in this case. In summary, If I had to redo this graph, I would:
+
+-   Change boxplots for violin plots with individual datapoints (jittered)
+
+-   Use a subtle viridis palette instead of this high contrast one.
+
+-   Add the legend embedded in empty space.
+
+-   Compact layout with clear significance marks (asterisks) instead of letters.
+
+#### 2. Using the `penguins` data from `palmerpenguins`, re-create the following plot with the included annotation elements:
+
+![](images/clipboard-1612182472.png)
+
+```{r, error=TRUE}
+
+library(palmerpenguins)
+library(ggplot2)
+library(dplyr)
+
+penguins |> 
+  ggplot(aes(x = flipper_length_mm, y = bill_length_mm)) +
+  geom_point()
+
+outlier <- penguins %>%
+  filter(bill_length_mm > 55 & flipper_length_mm < 185) |> 
+  slice(1)
+
+ggplot(penguins, aes(x = flipper_length_mm, y = bill_length_mm)) +
+  geom_point(color = "gray10", alpha = 0.6) + 
+  geom_point(data = outlier, aes(x = flipper_length_mm, y = bill_length_mm), 
+             color = "red", size = 3) +
+  annotate("text", x = 192, y = 61.5, label = "Outlier?", hjust = 0, vjust = 1.5, size = 4) +
+  annotate("segment", x = 191, xend = 182, y = 60, yend = 58,
+           arrow = arrow(length = unit(0.2, "cm"))) +
+  annotate("text", x = 170, y = 64, label = "Data source: Palmer penguins",
+           hjust = 0, size = 3.5, fontface = "italic") +
+  labs(
+    x = "Flipper length (mm)",
+    y = "Bill length (mm)"
+  ) +
+  theme_minimal(base_size = 13) +
+  theme(panel.grid = element_blank())
+
+```
+
+Provide a written description of how you've tried to diagnose the issues you're running into that generate the error above.
+
+#### 3. Using the data below, create a heatmap depicting covid deaths on average per 100K people, over time for US states. Filter out non-states (e.g. territories, protectorates) except for the District of Columbia.Make sure to use an appropriate color scale for the type of data depicted.
+
+-   [nytimes-covid-data-us-states_2022-02.csv](https://github.com/Bio724D/Bio724D_2024_2025/raw/main/data/nytimes-covid-data-us-states_2022-02.csv) – Data on COVID cases and deaths, by state, from 2020 to 2022, compiled by the NY Times.
+
+Your figure should look something like this:
+
+![](images/clipboard-656214327.png)
+
+```{r heatmap, fig.width=10, fig.height=14}
+
+library(tidyverse)
+library(lubridate)
+
+# Assuming your CSV is called 'covid_data.csv'
+df <- read_csv("C:/Users/leoto/Desktop/nytimes-covid-data-us-states_2022-02.csv")
+
+
+ggplot(df, aes(x = date, y = state, fill = deaths_avg_per_100k)) +
+  geom_tile() +
+  scale_fill_gradient(low = "white", high = "red", limits = c(0, 5)) +
+  labs(x = "Date",
+       y = "State",
+       fill = "Deaths / 100k") +
+  theme_gray() +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1))
+```
+
+## **Data lunch assignment**
+
+Identify something that you learned from the presentation or discussion on Thursday that you found valuable. Provide a brief reflection here (1-5 sentences) and include code or pseudo-code if useful. Hint: if you have specific code examples, consider adding them to your notebook as well.
+
+Last Lunch we discussed about how the Final Project of the course will work. We were asked to find a figure in the literature that we normally read to recreate it. It must be a complex - but not too complex- figure. This means, not a bar chart or scatter chart, but something more substantial such as the figures professor Paul Magwene presented as examples. Also, we were suggested to choose a figure that has several multiple parts. From the figures that were shown, I really liked the spectrophotometry results from professor Sönke Johnsen, however, I found his data very confusing and disorganized. I might go for that data set!
