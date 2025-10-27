@@ -1,0 +1,115 @@
+---
+title: "ltc31-assignment_08.qmd"
+author: "Leo Camino, ltc31"
+date: today
+date-format: iso
+format: 
+  html:
+    embed-resources: true
+editor: source
+---
+
+## Problem 1 - Fix inconsistent “Heat shock” naming
+
+```{r}
+
+
+library(tidyverse)
+
+#read the dataset
+gasch <- read_csv("C:/Users/leoto/Desktop/gasch1k.csv")
+
+#Rename first column again
+colnames(gasch)[1] <- "sample"
+
+#Fixing the inconsistency:
+gasch <- gasch %>%
+  mutate(sample = str_replace(sample, "^(?i)heat\\.shock", "Heat.shock"))
+
+
+```
+
+## Problem 2 - Standardize “minutes” → “min”
+
+```{r}
+gasch <- gasch %>%
+  mutate(sample = str_replace_all(sample, "minutes", "min"))
+```
+
+## Problem 3 — Convert “d” (days) to hours in YPD samples
+
+```{r}
+
+gasch$`sample`[str_detect(gasch$`sample`, "^YPD")] <- str_replace_all(
+  gasch$`sample`[str_detect(gasch$`sample`, "^YPD")],
+  "(\\d+)d", 
+  function(x) {
+    days <- as.numeric(str_extract(x, "\\d+"))  
+    hours <- days * 24                            
+    paste0(hours, "h")                            
+  }
+)
+```
+
+## Problem 4 - Create a new column experiment_condition for temperature shifts
+
+```{r}
+
+gasch <- gasch %>%
+  mutate(
+    condition = case_when(
+      # heat shock explicit
+      str_detect(`sample`, regex("Heat\\.shock", ignore_case = FALSE)) ~ "temp_shift",
+
+      # variants that indicate a 37C -> 25C type shift (covers extra dots/text)
+      str_detect(`sample`, regex("37C.*25C")) ~ "temp_shift",
+
+      # pattern with 21.to.37 (no C in one version)
+      str_detect(`sample`, regex("21\\.to\\.37")) ~ "temp_shift",
+
+      # 29C -> 33C (covers "29C.to.33C" and "29C..1M.sorbitol.to.33C" because of .* )
+      str_detect(`sample`, regex("29C.*33C")) ~ "temp_shift",
+
+      # Any DTT (case-insensitive) -> mark as DTT_exposure
+      str_detect(`sample`, regex("dtt", ignore_case = TRUE)) ~ "DTT_exposure",
+
+      # default
+      TRUE ~ NA_character_
+    )
+  ) %>%
+  relocate(condition, .after = sample)
+
+
+```
+
+## Problem 5 - 
+Note: I did my best but I believe this didn't work. I found this problem hard and I asked help to ChatGPT. I believe I probably missed something because I was unable to attend the class!
+
+```{r}
+gasch <- gasch %>%
+  mutate(
+    # 1) Assign the DTT condition
+    condition = case_when(
+      str_detect(sample, regex("dtt", ignore_case = TRUE)) ~ "DTT_exposure",
+      TRUE ~ condition
+    ),
+    
+    # 2) Clean up inconsistencies in the sample names
+    sample = str_replace_all(sample, regex("(?i)dtt"), "DTT"),  # make all uppercase
+    sample = str_replace_all(sample, "X2\\.", ""),              # remove "X2."
+    
+    # 3) Add missing concentration (simpler method)
+    sample = ifelse(
+      str_detect(sample, "DTT(?!\\.10mM)", negate = FALSE) & !str_detect(sample, "10mM"),
+      str_replace(sample, "DTT", "DTT.10mM"),
+      sample
+    )
+  )
+
+#test
+gasch %>%
+  filter(condition == "DTT_exposure") %>%
+  select(sample, condition) %>%
+  head(10)
+```
+
