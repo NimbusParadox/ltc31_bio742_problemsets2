@@ -1,0 +1,300 @@
+---
+title: "Problem Set 09"
+author: "Leo Camino, ltc31"
+date: today
+date-format: iso
+format: 
+  html:
+    embed-resources: true
+editor: source
+---
+
+# Background
+
+In this problem set you will build on the poem parsing functions we developed in class to carry out additional analyses on a small corpus of poems and song lyrics.
+
+### **Poems and song lyrics corpus**
+
+We’ve put a zip file with a small corpus of poems and song lyrics available on the course website at the following link.
+
+Download and unzip this file, putting the directory (`poems_corpus`) in your working directory.
+
+# Problems
+
+### Problem 1
+
+Write a for-loop to read each of the files in the `poems_corpus` directory, returning a list with four character vectors containing: (1) the authors first names; (2) authors last names; (3) poem/song title; (4) text of the poem/song.
+
+#### Solution for Problem 1
+
+First, I will load the libraries and rewrite the code we did in class for the `analyze_poem()` function.
+
+```{r}
+#Libraries
+library(stringr)
+library(dplyr)
+library(purrr)
+library(tibble)
+
+
+#Code for the function
+get_stanzas <- function(poem) {
+  # input: a single string representing one or more stanzas, 
+  #        stanzas separated by newlines
+  # output: a vector of strings, each string representing a stanzas
+  stanzas <- str_split_1(poem, "\n\n")
+  return (stanzas) # return the vector of stanzas
+}
+
+count_lines <- function(stanza) {
+  # input: a single string representing a single stanza
+  #         each line separated by a newline
+  # output: an integer giving the number of lines in the stanza
+  lines <- str_split_1(stanza, "\n")
+  return (length(lines))
+}
+
+count_words <- function(stanza) {
+  # input: a single string representing a single stanza
+  # output: an integer giving the number of words in the stanza
+  words <- 
+    stanza |> 
+    str_squish() |>
+    str_split_1("\\s")
+  
+  return (length(words))
+}
+
+count_alphabetical<- function(stanza) {
+  # input: a single string representing a single stanza
+  # output: an integer giving the number of alphabetical characters in the stanza
+  return (str_count(stanza, "[:alnum:]"))
+}
+
+count_punctuation <- function(stanza) {
+  # input: a single string representing a single stanza
+  # output: an integer giving the number of punctuation characters in the stanza
+  return (str_count(stanza, "[:punct:]"))
+}
+
+
+analyze_poem <- function(poem) {
+  # input: a single string representing one or more stanzas, 
+  #        stanzas separated by newlines
+  # output: a data frame, each row representing a stanza and the corresponding
+  #        metrics calculated above
+  
+  df <- tibble(
+    stanza = integer(),
+    num_lines = integer(),
+    num_words = integer(),
+    num_alpha = integer(),
+    num_punct = integer()
+  )
+  
+  # extract the stanzas
+  stanzas <- get_stanzas(poem)
+  
+  # iterate over the stanzas with a for-loop
+  # growing the data frame by one row at a time
+  for (i in 1:length(stanzas)) {
+    df <-
+      df |>
+      add_row(
+        stanza = i,
+        num_lines = count_lines(stanzas[i]),
+        num_words =  count_words(stanzas[i]),
+        num_alpha = count_alphabetical(stanzas[i]),
+        num_punct = count_punctuation(stanzas[i])
+      )
+  }
+  return(df)
+}
+```
+
+Solution for problem 1
+
+```{r}
+
+poem_files <- list.files(path = "poem_corpus", pattern = "*.txt", full.names = TRUE)
+
+first_names <- character(length(poem_files))
+last_names  <- character(length(poem_files))
+titles      <- character(length(poem_files))
+texts       <- character(length(poem_files))
+
+for (i in seq_along(poem_files)) {
+  base <- tools::file_path_sans_ext(basename(poem_files[i]))
+  
+  # Split filename into parts
+  parts <- strsplit(base, "_", fixed = TRUE)[[1]]
+  
+  # Author (first two parts), title (everything else)
+  first_names[i] <- parts[1]
+  last_names[i]  <- ifelse(length(parts) > 1, parts[2], "")
+  title_part     <- ifelse(length(parts) > 2, paste(parts[3:length(parts)], collapse = "_"), "")
+  
+  # Clean title
+  titles[i] <- str_trim(str_replace_all(title_part, "[-_]", " "))
+  
+  # Read poem text
+  content <- readLines(poem_files[i], warn = FALSE)
+  texts[i] <- paste(content, collapse = "\n")
+}
+
+```
+
+Quick checks for problem 1
+
+```{r}
+cat("Number of poems:", length(poem_files), "\n\n")
+print(head(first_names, 3))
+print(head(last_names, 3))
+print(head(titles, 3))
+cat("\nSample text:\n", texts[2], "\n")
+```
+
+### Problem 2
+
+Create an empty data frame with the following column names and types and assign it the variable name `poems_df`:
+
+-   `first_name` (character)
+
+-   `last_name` (character)
+
+-   `title` (character)
+
+-   `stanza` (integer)
+
+-   `num_lines` (integer)
+
+-   `num_words` (integer)
+
+-   `num_alpha` (integer)
+
+-   `num_punct` (integer)
+
+#### Solution for problem 2
+
+```{r}
+poems_df <- tibble(
+  first_name = character(),
+  last_name  = character(),
+  title      = character(),
+  stanza     = integer(),
+  num_lines  = integer(),
+  num_words  = integer(),
+  num_alpha  = integer(),
+  num_punct  = integer()
+)
+
+# Quick verification
+print(poems_df)  # Should show 0 rows, 8 columns
+str(poems_df)    # Confirms types
+```
+
+### Problem 3
+
+3.  Write a for-loop to iterate over the vectors you created in Problem 1 in parallel. Apply the `analyze_poem` function to the text of each poem, and use mutate to add author and title information to the output of `analyze_poem`. Merge each resulting data frame into `poems_df` using the `dplyr::bind_rows`.
+
+#### Solution for problem 3
+
+```{r}
+for (i in seq_along(poem_files)) {
+  poem_df <- analyze_poem(texts[i]) %>%
+    mutate(
+      first_name = first_names[i],
+      last_name = last_names[i],
+      title = titles[i]
+    ) %>%
+    select(first_name, last_name, title, everything())
+  
+  poems_df <- bind_rows(poems_df, poem_df)
+}
+
+# Quick verification
+print(head(poems_df))
+
+```
+
+### Problem 4
+
+Using the output of Problem 3, add the following metrics (per stanza) to the data frame:
+
+word_complexity – the average number of alphanumeric characters per word
+punct_density – the average number of punctuation characters per line
+
+#### Solution for problem 4
+
+```{r}
+poems_df <- poems_df %>%
+  mutate(
+    word_complexity = num_alpha / num_words,
+    punct_density = num_punct / num_lines
+  )
+
+# Quick verification
+print(head(poems_df %>% select(title, stanza, word_complexity, punct_density)))
+```
+
+### Problem 5
+
+On a per poem basis (hint: group_by), generate a derived data frame with the following:
+stanza_complexity – the average word_complexity for the poem as a whole
+poem_complexity – the number of stanzas times the stanza complexity
+punct_metric – the median punct_density for the poem as a whole
+
+####Solution for problem 5
+
+```{r}
+poem_metrics <- poems_df %>%
+  group_by(first_name, last_name, title) %>%
+  summarise(
+    stanza_complexity = mean(word_complexity, na.rm = TRUE),
+    punct_metric = median(punct_density, na.rm = TRUE),
+    n_stanzas = n(),
+    .groups = "drop"
+  ) %>%
+  mutate(
+    poem_complexity = n_stanzas * stanza_complexity
+  )
+
+# Top 3 by poem_complexity
+top3_poem_complexity <- poem_metrics %>%
+  arrange(desc(poem_complexity)) %>%
+  slice_head(n = 3) %>%
+  select(title, poem_complexity)
+
+# Top 3 by stanza_complexity
+top3_stanza_complexity <- poem_metrics %>%
+  arrange(desc(stanza_complexity)) %>%
+  slice_head(n = 3) %>%
+  select(title, stanza_complexity)
+
+# Author with smallest punct_metric
+smallest_punct_author <- poem_metrics %>%
+  arrange(punct_metric) %>%
+  slice_head(n = 1) %>%
+  mutate(author = paste(first_name, last_name)) %>%
+  pull(author)
+```
+### Problem 6
+
+
+```{r}
+#Top three more complex poems:
+print(top3_poem_complexity, row.names = TRUE)
+
+#Top three more complex stanzas
+print(top3_stanza_complexity, row.names = TRUE)
+```
+
+### Problem 7
+
+```{r}
+#The author whose poems have the smallest punct_metric
+cat("\nAuthor whose poems have the smallest punct_metric:\n")
+print(smallest_punct_author)
+```
+
+
