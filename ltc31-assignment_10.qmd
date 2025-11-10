@@ -1,0 +1,54 @@
+---
+title: "Problem Set 10"
+author: "Leo Camino, ltc31"
+date: today
+date-format: iso
+format: 
+  html:
+    embed-resources: true
+editor: source
+---
+
+### Problem 1. Write a function to find all KDEL locations in a protein.
+
+I had some problems figure out how to do this, but what I would do is to write a function that takes a single protein identifier as input and finds all occurrences of the motif "KDEL" within its amino acid sequence. Since `str_locate_all()` indexes from the start of the protein, convert these positions to be relative to the end of the protein, so that the last amino acid has position 1. Return a data frame containing the protein identifier and the adjusted start and end positions of each KDEL motif.
+
+```{r}
+library(Biostrings)
+library(tibble)
+library(dplyr)
+library(stringr)
+
+fasta_file <- "LatCha_protein.fasta.txt"
+proteins <- readAAStringSet(fasta_file)
+
+
+coelacanth_df <- tibble(
+  identifier = names(proteins),
+  sequence = as.character(proteins)
+) %>%
+  mutate(identifier = gsub("Latimeria chalumnae ", "", identifier))
+
+
+find_kdel <- function(protein_id, df) {
+  seq <- df %>% filter(identifier == protein_id) %>% pull(sequence)
+  
+  seq_length <- nchar(seq)
+  
+  matches <- str_locate_all(seq, "KDEL")[[1]]
+  
+  if (nrow(matches) == 0) return(NULL)
+  
+  matches[, c("identifier", "start_back", "end_back")]
+}
+
+#This is not working :/
+```
+
+### Problem 2. Write code to apply your function to all proteins.
+
+After defining the function in problem 1, I would apply it to all proteins in the dataset. I would use `lapply()` to iterate over the list of proteins. This would give me a list of data frames contaning the KDEL positions for a single protein. I would then combine all of these into a single long-format data frame using a function like `bind_rows()` from the `dplyr` package. In this data frame, each row would represent one KDEL motif, and proteins without any KDEL motifs would automatically be excluded. Proteins with multiple KDEL motifs would appear multiple times. This long format would make it easy to analyze and plot the positions of KDEL across all proteins.
+
+### Problem 3. Plot your results.
+
+To visualize where KDEL motifs are located near the ends of proteins, I would first filter the data to include only motifs within the last 100 amino acids. I would then create a density plot using `ggplot2`, with `geom_density()` to show the distribution of KDEL positions. To make the plot intuitive, I would use `scale_x_reverse()` so that the end of the protein appears on the right side of the plot.
