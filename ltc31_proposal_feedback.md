@@ -1,0 +1,2 @@
+Great choice of plot, it should be interesting to create and uses types of data and plots that we have not covered in class. You are clear to go ahead with the project, and let us know if you run into any issues with the image data analysis. It looks like you have a good understanding of the data locations and formatting, just make sure that all the information you need is present in the data/filenames (such as brood number, cross parentage, etc.).
+
