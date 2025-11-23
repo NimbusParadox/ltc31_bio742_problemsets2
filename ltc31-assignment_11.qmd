@@ -1,0 +1,165 @@
+---
+title: "Problem Set 11"
+author: "Leo Camino, ltc31"
+date: today
+date-format: iso
+format: 
+  html:
+    embed-resources: true
+editor: source
+---
+
+Before starting the problems, recreate the birding database from class. Refer to `SQL_01_complete.html` (available on the class wiki) for the code to load packages, import files, and build the database. This notebook also contains the queries we went over in class, as well as notes about syntax and usage.
+
+```{r}
+# only run this code chunck once!
+#install.packages("DBI")
+#install.packages("duckdb")
+```
+
+```{r}
+# load packages
+library("DBI")
+library("duckdb")
+
+# establish a connection to the database
+con <- DBI::dbConnect(
+  drv = duckdb::duckdb(),
+  dbdir = "birding.db",
+  read_only = TRUE
+)
+
+# tell knitr about the connection
+knitr::opts_chunk$set(connection = "con")
+```
+
+```{sql connection="con"}
+-- only run this code chunk once!
+INSTALL icu;
+SET default_collation = 'nocase';
+```
+
+```{sql connection="con"}
+PRAGMA show_tables;
+PRAGMA table_info('genera');
+```
+
+# Problem set
+
+## Problem 1
+
+The Bat Falcon is a predator of small vertebrates and large insects whose range extends from southern Mexico to northern Argentina. What country was Greg in the third time he saw a Bat Falcon? You could construct a single, rather complicated query to get the answer, but for one-off questions like this, it’s usually quicker to break the problem down into several simple and separate queries. In this case, you can get the answer using queries to the species, observations, and locations tables, in that order. Show the three simple queries that uncover the answer.
+
+```{sql connection="con"}
+SELECT 
+    o.date_obs,
+    o.location_name,
+    l.province,
+    l.country_name
+FROM observations o
+JOIN locations l ON o.location_name = l.location_name
+WHERE o.genus_ioc = 'Falco'
+  AND o.species_ioc = 'rufigularis'
+ORDER BY o.date_obs;
+```
+
+**Greg found a Bat Falcon (*Falco rufigularis)*****for the third time in Gareno, Napo, Ecuador!** It was super nice to know he found it in my country! I can imagine he went birding after the III Epigenetic Amazonian Conference that was celebrated at Ikiam during that year.
+
+## Problem 2
+
+The Ramphastidae is a colorful family of birds restricted to the Neotropics that includes the toucans and their relatives. Construct a single query that returns all of the genera in the Ramphastidae, as well as the number of species in each genus. Hint: the last query under Aliases and the first query under Joins in the notebook from class contain code that may be helpful.
+
+To solve this
+
+```{sql connection="con"}
+SELECT 
+    g.genus_ioc,
+    COUNT(s.species_ioc) as species_count
+FROM genera g
+JOIN species s ON g.genus_ioc = s.genus_ioc
+WHERE g.family_ioc = 'Ramphastidae'
+GROUP BY g.genus_ioc
+ORDER BY species_count DESC;
+```
+
+With this query, we get all the genus on the genera Ramphastidae, and the number of species.
+
+## Problem 3
+
+3.  What was the day that Greg recorded the greatest diversity of bird species? Where in the world was he on this epic day? (A) First, write a single query that returns the date on which the largest total number of species was observed. (B) Next, write a separate query that returns all of the locations on that day where an observation was recorded. Use aliases to make the meaning of the columns clear. (C) **Optional** bonus question: What was the day that Greg observed the largest number of species for the first time
+
+    **A)** When the largest total number of species was observed?
+
+```{sql connection="con"}
+SELECT 
+    date_obs AS observation_date,
+    COUNT(DISTINCT genus_ioc || ' ' || species_ioc) AS total_species_observed
+FROM observations
+GROUP BY date_obs
+ORDER BY total_species_observed DESC
+LIMIT 1;
+```
+
+**The day where the largest total number of species were observed was December 8th, 2020. Greg observed 82 birds that amazing day.** Assuming he went birding for 6 hours of daylight, he saw 13.66 species of birds per hour!
+
+**B)** Find all of the locations on that day where an observation was recorded
+
+```{sql connection="con"}
+SELECT 
+    o.location_name AS location_visited,
+    l.country_name AS country,
+    l.province AS province,
+    COUNT(DISTINCT o.genus_ioc || ' ' || o.species_ioc) AS species_at_location
+FROM observations o
+JOIN locations l ON o.location_name = l.location_name
+WHERE o.date_obs = '2020-12-08'
+GROUP BY o.location_name, l.country_name, l.province
+ORDER BY species_at_location DESC;
+```
+
+As an Ecuadorian, I am very proud to say **Greg found most of the species in Pichincha, Ecuador!** He found **49 species in Mindo**, and **48 in Paz de las Aves** in December 8th, 2020.
+
+**C)** What was the day that Greg observed the largest number of species for the first time
+
+```{sql connection="con"}
+WITH first_observations AS (
+    SELECT 
+        genus_ioc,
+        species_ioc,
+        MIN(date_obs) AS first_observation_date
+    FROM observations
+    GROUP BY genus_ioc, species_ioc
+),
+daily_new_species AS (
+    SELECT
+        first_observation_date AS observation_date,
+        COUNT(*) AS new_species_count
+    FROM first_observations
+    GROUP BY first_observation_date
+)
+SELECT 
+    observation_date,
+    new_species_count
+FROM daily_new_species
+ORDER BY new_species_count DESC
+LIMIT 1;
+```
+
+**The first time Greg observed the largest number of new species** **was in 2018-08-16**. Using the query that we built before to find the locations:
+
+```{sql connection="con"}
+SELECT 
+    o.location_name AS location_visited,
+    l.country_name AS country,
+    l.province AS province,
+    COUNT(DISTINCT o.genus_ioc || ' ' || o.species_ioc) AS species_at_location
+FROM observations o
+JOIN locations l ON o.location_name = l.location_name
+WHERE o.date_obs = '2018-08-16'
+GROUP BY o.location_name, l.country_name, l.province
+ORDER BY species_at_location DESC;
+```
+
+**This happened in** **Malaysia**, another very biodiverse country such as Ecuador.
+
+**This was super fun, thank you for the** **cool homework!**
