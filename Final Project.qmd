@@ -1,0 +1,477 @@
+---
+title: "Final Project"
+author: "Leo Camino, ltc31"
+date: today
+date-format: iso
+format: 
+  html:
+    embed-resources: true
+editor: source
+---
+
+## Loading and understanding the data
+
+I will be recreating the figure from the paper [“Genetics of yellow-orange color variation in a pair of sympatric sulphur butterflies”](https://doi.org/10.1016/j.celrep.2023.112820) by *Hanly et. al (2023)*. Especifically, I will recreate [this figure](https://www.cell.com/cms/10.1016/j.celrep.2023.112820/asset/6a135dcb-1a69-46e6-8eb7-093adf3b5c50/main.assets/gr1_lrg.jpg), specifically I will recreate panel A, B, E, F and G.
+
+First, I will set the base directory. **Please, consider** that you will have to change it to the place where you located the data folder in your particular case.
+
+```{r}
+#base directory
+base_dir <- ("C:/Users/leoto/Desktop/data")
+```
+
+Then, I will define the names of the folders that contain the .jpg files that I will use for each brood analyzed:
+
+```{r}
+pop_folder <- c(
+  "DFW_49",  # Population 1
+  "DFW_75",  # Population 2
+  "DFW_79",   # Population 3
+  "test" # A folder to make some diagnostic with only 10 random jpg
+)
+
+DFW_49 <- c("DFW_49")
+DFW_75 <- c("DFW_75")
+DFW_79 <- c("DFW_79")
+Test <- c("test")
+```
+
+Now, I will make a vector with all the paths:
+
+```{r}
+pop_paths <- file.path(base_dir, pop_folder)
+dfw_49 <- file.path(base_dir, DFW_49)
+dfw_75 <- file.path(base_dir, DFW_75)
+dfw_79 <- file.path(base_dir, DFW_79)
+test <- file.path(base_dir, Test)
+```
+
+We need a function that gets all JPG files from a specific folder, for that reason, I will create a function called `get_jpg_files` :
+
+```{r}
+get_jpg_files <- function(folder_path) {
+  list.files(folder_path, 
+             pattern = "\\.jpg$|\\.jpeg$|\\.JPG$",  # This makes sure we take .jpg files in any isoform 
+             full.names = TRUE,       # This line will help us returning full paths
+             recursive = FALSE)       # If there was a subfolder, we will ignore it with this line.
+}
+```
+
+Now, we will make a code where we get files for each brood using `pop_folder`
+
+```{r}
+pop_files <- list()
+for (i in seq_along(pop_folder)) {
+  pop_name <- pop_folder[i]
+  pop_path <- pop_paths[i]
+  
+  files <- get_jpg_files(pop_path)
+  pop_files[[pop_name]] <- files
+}
+```
+
+I did not participate in the paper, so I don't really know how many individuals are on each brood. I could count them on the figure, but I decided to make a chunk of code that tells me the number of individuals photographed instead. I think that is more elegant.
+
+```{r}
+cat("=== Final Image Count ===\n")
+for (pop in pop_folder) {
+  cat(pop, ":", length(pop_files[[pop]]), "images\n")
+}
+cat("Total:", sum(sapply(pop_files, length)), "images\n")
+```
+
+Cool! We have 148 individuals for DFW_49, 198 for DFW_75, and 115 for DFW_79. This is very exciting.
+
+## Color analysis
+
+### Libraries
+
+For now, we have understood better the data structure and also made sure our code is able to retrieve the information of the images. We can proceed with the actual decomposition of the wing colors using the `color distance` package. First thing we will do here is loading the actual libraries that we will use to manipulate color, extract the data, wrangle the data and plot the results.
+
+```{r}
+
+# Load required packages for color analysis
+library(colordistance)  # For color space analysis
+library(ggplot2)        # For plotting
+library(dplyr)          # For data manipulation
+library(purrr)          # For functional programming
+library(stringr)        # For string manipulation
+library(ggridges)       # For creating joy plots
+library(tidyr)          # For data wrangling
+library(patchwork)      # For figure combination
+library(rgl)            # For transforming colordistance figures to png
+```
+
+### Lab space decomposition
+
+This will be hard, but let's create a function that processes a single butterfly image and extracts the yellow color information. Please, consider that in the CIEL\*a\*b spaces:
+
+-   a is the dimension where red and green hues are balanced.
+
+-   b is the dimension where the blue and yellow hues are balanced.
+
+-   L is the light intensity (white vs black).
+
+In this case, our mission is to first produce the CIEL\*a\*b space of each photo using the `colordistance` package, and then figure out how to decompose the 3D space to extract the b values.
+
+```{r}
+# Simple function to extract b* values from an image
+extract_b_values <- function(img_path) {
+  # Load the image
+  img <- colordistance::loadImage(
+    img_path,
+    CIELab = TRUE,
+    ref.white = "D65",
+    sample.size = 10000  # I am taking 10 thousand random pixels from the image for analysis. It is a good number. Takes a while.
+  )
+  
+  # The next line is the most important in the whole file. It extracts the specific "b" space from the CIEL*a*b space.
+  lab_df <- img$filtered.lab.2d
+
+  #I will also add some additional useful functions for later, such as butterfly ID extraction, 
+  butterfly_id <- str_extract(filename, "\\d{3}(?=DFW)")
+  
+  # Extract brood from filename: "00-49-001DFW.jpg"
+  filename <- basename(img_path)
+  
+  # Extract population (49, 75, or 79)
+  population <- str_extract(filename, "(?<=-)\\d{2}(?=-)")
+  
+  # Return data frame with b* values
+  data.frame(
+    butterfly_id = butterfly_id,
+    population = population,
+    b_value = lab_df$b  # b* values (blue-yellow axis)
+  )
+}
+```
+
+### Understanding the 3D space
+
+Here I want to test if the last chunk was able to actually extract the Lab color spaces of the .jpg files. Let's take a look first plotting the 3D Lab space using the function `colordistance::plotPixels()`.
+
+First, let's establish the individual 001 from brood 49 as the test file:
+
+```{r}
+test_file <- pop_files[["test"]][1]
+```
+
+Now we can proceed to plot the L\*a\*b 3D color space. I will create a function that can instantly produce a 3D L\*a\*b figure using a function called `Lab_plot` :
+
+```{r}
+Lab_plot <- function(img_path) {
+  filename <- basename(img_path)
+  butterfly_id <- str_extract(filename, "\\d{3}(?=DFW)")
+  
+  # 3D CIELab space plot
+  colordistance::plotPixels(
+    img_path,
+    color.space = "lab",
+    ref.white = "D65",
+    n = 10000, #We will take 20 thousand random pixels here too.
+    main = paste("Butterfly", butterfly_id),
+    ylim = c(-150, 150),
+    zlim = c(-150, 150)
+  )
+}
+
+Lab_plot(test_file)
+```
+
+What we see here is a very nice plot of the three dimensions of color decomposition in the L\*a\*b space. In fact, this is the type of figure they use for **A)** panel on their *Figure 1*, however, the individual 001 from brood 49 is not the correct one.
+
+### Function to load an image and extract RGB (CIEL\*a\*b) pixels from it
+
+First, I will create a function that loads the photos from the colordistance package that
+
+-   Takes ten thousand random pixels to analyze.
+
+-   Removes the background noise from white pixels using a threshold.
+
+-   Extracts the L\*a\*b values of the ten thousand random pixels.
+
+-   Removes the black and brown pixels from the photos (*Colias* butterflies have a black band on their dorsal forewings that we don't want to analyze).
+
+-   Returns a data frame for the specific b values. **Note:** when trying to do this, I noticed even though the authors of the paper say they masked for the "b" space that comprehends blue-yellow balance, what they actually plotted were the hues of all the different yellows present on the "L" Luminance space. In that sense, I will do the same.
+
+```{r}
+extract_b_values <- function(img_path) {
+  # Load the image with colordistance
+  img <- colordistance::loadImage(
+    img_path,
+    CIELab = TRUE, 
+    ref.white = "D65", #calibrates the whites
+    sample.size = 10000, #Extracts ten thousand random pixels
+    lower = c(0.7, 0.8, 0.8), #filter for white background
+    upper = c(1, 1, 1)
+  )
+  
+  # Extract L*a*b dataframe
+  lab <- img$filtered.lab.2d #I create the main CIEL*a*b dataframe here.
+  
+  # Apply a yellow mask
+  yellow_mask <- lab$L >= 70 & lab$L <= 100 &
+                 lab$b >= 20 & lab$b <= 80 &
+                 lab$a >= -140 & lab$a <= 140
+  
+  # Keep only yellow pixels
+  yellow_lab <- lab[yellow_mask, ]
+  
+  # Modify the name of the file so we get the individual
+  clean_name <- sub("D\\.jpg$", "", basename(img_path))
+  
+  # Return data frame of ONLY yellow b* values
+  data.frame(
+    sample = clean_name,
+    b_value = yellow_lab$L
+  )
+}
+```
+
+Now that my `extract_b_values` function is ready, I have to load the files. To do this, I will use the paths I already created some chunks before. Additionally, I will find the highest yellow score and organize the histograms by this parameter using dplyr.
+
+### Test folder
+
+```{r}
+img_files_test <- list.files(
+  path = test, 
+  pattern = "\\.jpg$", 
+  full.names = TRUE
+)
+
+b_data_test <- purrr::map_dfr(img_files_test, extract_b_values, .progress = TRUE)
+
+sample_order <- b_data_test |> 
+  dplyr::group_by(sample) |> 
+  dplyr::summarize(med = median(b_value, na.rm = TRUE)) |> 
+  dplyr::arrange(desc(med)) |> 
+  dplyr::pull(sample)
+
+b_data_test$sample <- factor(b_data_test$sample, levels = sample_order)
+
+#Here I established the range to draw all the following histograms
+range(b_data_test$b_value)
+
+```
+
+Let's test very quickly using this code to graph a joyplot with our b and L values.
+
+```{r, fig.height=6, fig.width=2.5}
+  
+ggplot(b_data_test, aes(x = b_value, y = sample, fill = after_stat(x))) +
+  geom_density_ridges_gradient(scale = 2.5, rel_min_height = 0.01, color = "black") +
+  scale_fill_gradient(low = "#EFB001", high = "#DFE990") +
+  scale_x_continuous(breaks = 50)+
+  theme_minimal() +
+  theme(legend.position = "none",
+  axis.title.y = element_blank(),
+  axis.text.y  = element_blank(),
+  axis.ticks.y = element_blank(),
+  axis.line.y  = element_blank(),
+  axis.line.x = element_blank(),
+  axis.title.x = element_blank()
+)+
+  labs(
+    title = "Test",
+    fill = "b*"
+  )
+```
+
+Amazing, the joyplots are working, as well as the gradient and the organization of peaks based on the maximum yellow score. In the original figure they place the joyplots in a descending way, from higher scores (yellow) to lower scores (orange). We will do the opposite just to explore the aesthetics of the same figure organized in another way.
+
+### Broods 49
+
+```{r}
+img_files_49 <- list.files(
+  path = dfw_49, 
+  pattern = "\\.jpg$", 
+  full.names = TRUE
+)
+
+b_data_49 <- purrr::map_dfr(img_files_49, extract_b_values, .progress = TRUE)
+
+sample_order <- b_data_49 |> 
+  dplyr::group_by(sample) |> 
+  dplyr::summarize(med = median(b_value, na.rm = TRUE)) |> 
+  dplyr::arrange(desc(med)) |> 
+  dplyr::pull(sample)
+
+b_data_49$sample <- factor(b_data_49$sample, levels = sample_order)
+
+#Here I established the range to draw all the following histograms
+range(b_data_49$b_value)
+```
+
+### Broods 75
+
+```{r}
+img_files_75 <- list.files(
+  path = dfw_75, 
+  pattern = "\\.jpg$", 
+  full.names = TRUE
+)
+
+b_data_75 <- purrr::map_dfr(img_files_75, extract_b_values, .progress = TRUE)
+
+sample_order <- b_data_75 |> 
+  dplyr::group_by(sample) |> 
+  dplyr::summarize(med = median(b_value, na.rm = TRUE)) |> 
+  dplyr::arrange(desc(med)) |> 
+  dplyr::pull(sample)
+
+b_data_75$sample <- factor(b_data_75$sample, levels = sample_order)
+
+#Here I established the range to draw all the following histograms
+range(b_data_75$b_value)
+```
+
+### Broods 79
+
+```{r}
+img_files_79 <- list.files(
+  path = dfw_79, 
+  pattern = "\\.jpg$", 
+  full.names = TRUE
+)
+
+b_data_79 <- purrr::map_dfr(img_files_79, extract_b_values, .progress = TRUE)
+
+sample_order <- b_data_79 |> 
+  dplyr::group_by(sample) |> 
+  dplyr::summarize(med = median(b_value, na.rm = TRUE)) |> 
+  dplyr::arrange(desc(med)) |> 
+  dplyr::pull(sample)
+
+b_data_79$sample <- factor(b_data_79$sample, levels = sample_order)
+
+#Here I established the range to draw all the following histograms
+range(b_data_79$b_value)
+```
+
+Now, let's try to plot the b space only, where yellow is located. We should be able to do this thanks to the function `extract_b_values` that was created before. I am going to plot a histogram, but it is important to consider that Hanly *et. al* use histograms with the y axis being the percentage of pixels analyzed, instead of the frequency.
+
+```{r, fig.height=15, fig.width=10}
+
+joyplot_49 <- ggplot(b_data_49, aes(x = b_value, y = sample, fill = after_stat(x))) +
+  geom_density_ridges_gradient(scale = 2.5, rel_min_height = 0.01, color = "black") +
+  scale_fill_gradient(low = "#EFB001", high = "#DFFA00") +
+  scale_x_continuous(breaks = 50)+
+  theme_minimal() +
+  theme(legend.position = "none",
+  axis.title.y = element_blank(),
+  axis.text.y  = element_blank(),
+  axis.ticks.y = element_blank(),
+  axis.line.y  = element_blank(),
+  axis.line.x = element_blank(),
+  axis.title.x = element_blank()
+)+
+  labs(
+    title = "Backcross 49 - BC1",
+    fill = "b*"
+  )
+
+
+joyplot_75 <- ggplot(b_data_75, aes(x = b_value, y = sample, fill = after_stat(x))) +
+  geom_density_ridges_gradient(scale = 2.5, rel_min_height = 0.01, color = "black") +
+  scale_fill_gradient(low = "#EFB001", high = "#DFFA00") +
+  scale_x_continuous(breaks = 50)+
+  theme_minimal() +
+  theme(legend.position = "none",
+  axis.title.y = element_blank(),
+  axis.text.y  = element_blank(),
+  axis.ticks.y = element_blank(),
+  axis.line.y  = element_blank(),
+  axis.line.x = element_blank(),
+  axis.title.x = element_blank()
+)+
+  labs(
+    title = "F2 brood 75",
+    fill = "b*"
+  )
+
+
+joyplot_79 <- ggplot(b_data_79, aes(x = b_value, y = sample, fill = after_stat(x))) +
+  geom_density_ridges_gradient(scale = 2.5, rel_min_height = 0.01, color = "black") +
+  scale_fill_gradient(low = "#EFB001", high = "#DFFA00") +
+  scale_x_continuous(breaks = 50)+
+  theme_minimal() +
+  theme(legend.position = "none",
+  axis.title.y = element_blank(),
+  axis.text.y  = element_blank(),
+  axis.ticks.y = element_blank(),
+  axis.line.y  = element_blank(),
+  axis.line.x = element_blank(),
+  axis.title.x = element_blank()
+)+
+  labs(
+    title = "Backcross 79 - BC2",
+    fill = "b*"
+  )
+
+final_joyplot <- joyplot_75 | joyplot_49 | joyplot_79
+final_joyplot
+
+```
+
+Now that we have recreated the amazing joyplot with the three main populations, let's figure out how to find the most extreme orange and yellow butterflies within them.
+
+```{r}
+# Combine everything
+all_b_data <- bind_rows(
+  b_data_49 %>% mutate(brood = "DFW_49"),
+  b_data_75 %>% mutate(brood = "DFW_75"),
+  b_data_79 %>% mutate(brood = "DFW_79")
+)
+
+# Find extremes
+extremes <- all_b_data %>%
+  group_by(sample, brood) %>%
+  summarise(median_L = median(b_value, na.rm = TRUE), .groups = "drop") %>%
+  arrange(desc(median_L))
+
+# Most yellow butterfly (highest median L)
+most_yellow       <- extremes[1, ]
+most_yellow_file  <- paste0(most_yellow$sample, ".jpg")
+
+# Most orange butterfly (lowest median L)
+most_orange       <- extremes[nrow(extremes), ]
+most_orange_file  <- paste0(most_orange$sample, ".jpg")
+
+# Print nicely
+cat("Most YELLOW butterfly (overall):\n")
+cat("   File:", most_yellow_file, "\n")
+cat("   Brood:", most_yellow$brood, "\n")
+cat("   Median L =", round(most_yellow$median_L, 2), "\n\n")
+
+cat("Most ORANGE butterfly (overall):\n")
+cat("   File:", most_orange_file, "\n")
+cat("   Brood:", most_orange$brood, "\n")
+cat("   Median L =", round(most_orange$median_L, 2), "\n")
+```
+
+Cool, we have found that individual 109 from population 75 has a median L value of 88.01, while the lowest yellow score is present on individual 130 from brood 49, with a median L of 74.64. Now, we will get their CIE L\* a \* b spaces using the function `Lab_plot` that we built in the beginning.
+
+```{r, fig.height=5, fig.width=5}
+yellow_3d <- Lab_plot(pop_files[["DFW_49"]][130])
+orange_3d <- Lab_plot(pop_files[["DFW_75"]][109])
+
+#I tried this, but patchwork doesn't work on figures produced by 
+#final_3d <- yellow_3d | orange_3d
+#final_3d
+```
+
+I got the 3D spaces of the most orange and yellow individual, but sadly I was unable to combine them on Patchwork. Let's get their histograms now!
+
+```{r}
+indiv_130_49 <- "C:/Users/leoto/Desktop/data/DFW_49/00-49-130_DFW.jpg"
+indiv_108_75 <- "C:/Users/leoto/Desktop/data/DFW_75/00_75_109_DFW.jpg"
+
+
+hist1 <- getLabHist(ref.white= "D65",indiv_130_49,lower=c(0.7, 0.8, 0.8), upper=c(1, 1, 1), bins = c(50, 1, 1),l.bounds=c(70,100),a.bounds = c(-140, 140), b.bounds = c(20, 80))
+
+hist2 <- getLabHist(ref.white= "D65",indiv_108_75,lower=c(0.7, 0.8, 0.8), upper=c(1, 1, 1), bins = c(50, 1, 1),l.bounds=c(70,100),a.bounds = c(-140, 140), b.bounds = c(20, 80))
+```
+
+Even though I used all the parameters that the authors suggest, I was unable to reproduce their exact same histograms for some reason. Mine are skewed to the right and less informative. It is interesting because the same values are match with joyplots, but seem to differ when using the colordistance package.
+
+Considering that I can not put together the figures using `patchwork`, I will leave the figures like this, but I will upload a version where I put everything together on Adobe Illustrator.
