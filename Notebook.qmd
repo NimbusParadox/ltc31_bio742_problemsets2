@@ -1,0 +1,113 @@
+---
+title: "Notebook"
+author: "Leo Camino"
+format: html
+editor: visual
+---
+
+# Learning Notebook – Key R and SQL Functions
+
+This notebook summarizes the most important functions and packages learned during the semester. Each section highlights key functions and a brief explanation.
+
+## 1. Data Import, Data Frame Basics, and Data Types in R
+
+**read.csv()**\
+Read a CSV file into a data frame.
+
+**head()**\
+Displays the first 6 rows of a data frame for quick inspection.
+
+**str()**\
+Shows the structure of a data frame, including variable types.
+
+**class()**\
+Returns the class/type of an object (e.g., numeric, character, data.frame).
+
+**dim()**\
+Returns the number of rows and columns in a data frame.
+
+------------------------------------------------------------------------
+
+## 2. Data Visualization (ggplot2)
+
+**ggplot()**\
+Initializes a ggplot object for creating graphics.
+
+**aes()**\
+Maps variables to visual properties (axes, color, size).
+
+**geom_point()**\
+Adds a scatter plot layer to a ggplot.
+
+**geom_bar()**\
+Creates a bar plot layer.
+
+**theme()**\
+Customizes the appearance of a plot (fonts, colors, background).
+
+------------------------------------------------------------------------
+
+## 3. Indexing, Filtering, Grouping, and Summarizing
+
+**\$ (dollar sign)**\
+Access a column of a data frame by name.
+
+**\[\] (brackets)**\
+Subset rows and columns of a data frame.
+
+**filter()**\
+From `dplyr`: selects rows based on conditions.
+
+**group_by()**\
+From `dplyr`: groups data for aggregation.
+
+**summarize()**\
+From `dplyr`: computes summary statistics for grouped data.
+
+------------------------------------------------------------------------
+
+## 4. Data Wrangling and Strings
+
+**mutate()**\
+Adds or modifies columns in a data frame.
+
+**select()**\
+Chooses a subset of columns from a data frame.
+
+**arrange()**\
+Sorts rows of a data frame by a variable.
+
+**gsub()**\
+Replaces patterns in strings using regular expressions.
+
+**str_detect()**\
+From `stringr`: tests if a pattern exists in a string.
+
+------------------------------------------------------------------------
+
+## 5. Control Flow, Functions, and SQL
+
+**if / else**\
+Control flow for conditional operations.
+
+**for()**\
+Loop over a sequence of values.
+
+**function()**\
+Defines a reusable R function.
+
+**DBI::dbConnect()**\
+Establishes a connection to a SQL database.
+
+**dbGetQuery()**\
+Executes a SQL query and returns the result as a data frame.
+
+------------------------------------------------------------------------
+
+## 6. References and Resources
+
+-   [R for Data Science](https://r4ds.had.co.nz/) – free online book for R and data science\
+-   [ggplot2 documentation](https://ggplot2.tidyverse.org/) – reference for visualization functions\
+-   [dplyr cheat sheet](https://dplyr.tidyverse.org/) – quick reference for data wrangling\
+-   [stringr cheat sheet](https://stringr.tidyverse.org/) – reference for string operations\
+-   [DBI package documentation](https://dbi.r-dbi.org/) – SQL integration in R
