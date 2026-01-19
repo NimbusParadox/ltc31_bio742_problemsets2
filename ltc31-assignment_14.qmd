@@ -1,0 +1,120 @@
+---
+title: "Problem Set 15"
+author: "Leo Camino, ltc31"
+date: today
+date-format: iso
+format: 
+  html:
+    embed-resources: true
+editor: source
+---
+
+For this problem set, we will be using your VM and working with the information in `example_directory` that Paul introduced in class. Begin by starting your VM, logging in, and transferring `example_directory` onto your VM with Cyberduck. Within `example_directory`, create a new directory called `practice` and navigate to this directory (in other words, make `practice` your working directory). When a problem asks you provide code, it should work from this location; if the problem requires you to do something in another directory, provide a path to that directory in your code, don’t navigate there.
+
+1.  Show the commands that you would use to carry out the following file operations. In each case, you should be able to carry out the operation with a single command and without navigating out of `practice` as your working directory.
+
+-   Create a directory in `~/example_directory/foo` called `wombat`.
+
+    `mkdir ~/example_directory/foo/wombat`
+
+-   Create a directory in your current location called `kanga` that contains a subdirectory called `roo`.
+
+    `mkdir -p kanga/roo`
+
+-   Make a copy of the directory `~/example_directory/bar` and its contents in your current location.
+
+    `cp -r ~/example_directory/bar .`
+
+-   Change name of the copied directory `bar` in your current location (not the original one) to `koala`.
+
+    `mv bar koala`
+
+-   Move the directory `~/example_directory/foo/wombat` that you created earlier into your current directory.
+
+    `mv ~/example_directory/foo/wombat`
+
+2.  When you make many files that contain similar data, it is good practice to have all the file names be the same length, as this results in correct ordering when you sort or display them. For instance, if you have dozens of files, name the first file `data_01.txt` rather than `data_1.txt`. This is known as padding with zeros. The number of zeros depends on how many files you anticipate working with. Imagine a situation where you need 200 files.
+
+-   Show the command that creates 200 empty files with names in the format `data_001.txt` through `data_199.txt`. You should be able to create all 200 files with just 1 command. Use `ls` to make sure you have all the files that you expected.
+
+    `touch data_{001..200}.txtls -l`
+
+-   Imagine a situation where you later realize that you only need the first 150 files. Show the single command that deletes files `data_151.txt` through `data_199.txt`.
+
+    `rm data_{151..200}.txtls -l`
+
+3.  Learning how to get help for Unix commands is an essential skill. Even experienced Unix users frequently refer to help pages. Some commands have over 50 options and no one can remember all of them. Refer to the `man` page for `date` to learn about this simple but useful command.
+
+-   Run the commands `date` and `date -r` and compare their output. What is RFC format? What is the meaning of the last block of characters (-0500)?
+
+    `date` shows the current date and time in your system’s local timezone.
+
+    `date -R` shows the date in RFC 2822 format, which is often used in emails.
+
+    RFC format is A standardized way of representing dates and times for computers and networks. It’s readable and unambiguous, used in email headers and web protocols.
+
+    `-0500` → this is the timezone offset from UTC.
+
+    `-0500` means your local time is 5 hours behind UTC (Eastern Standard Time).
+
+    If it were `+0200`, that would mean 2 hours ahead of UTC.
+
+-   Show the command that uses `date` to return the current time in UTC (Universal or Greenwich Meridian time zone ).
+
+    `date -u`
+
+-   Show the command that uses `date` to return the date that `~/example_directory/foo` was last modified. Can you think of a situation where this might be useful?
+
+    date -r \~/example_directory/foo
+
+4.  (Updated) Practice getting help with another Unix command: `tr`. Use the `man` page to learn how this command can be useful for processing text files.
+
+-   Each man page starts with an entry called `NAME` that provides the name of the command and a brief description of what it does. This description is very brief: it useful as a reminder for someone who has used the command in the past, but less helpful if you are completely unfamiliar with the command. Read the man page to gain a clear understanding of what `tr` does. Try out a few options to get a feel for how it works. Write a longer description that is useful for someone who has never heard of the command before.
+
+    The `tr` command in Unix is short for translate. It is used to transform text by changing, deleting, or compressing characters. Unlike many commands, `tr` does not take a filename directly; instead, it works on text passed to it through standard input, often using a pipe or input redirection.
+
+-   Next, use your understanding of `tr` to process the `VoyageOfTheBeagle.txt` file. Show the command that uses `tr` to convert every instance of `B` to `b`.
+
+    `tr 'B' 'b' < VoyageOfTheBeagle.txt`
+
+-   Show the command that uses `tr` to delete every instance of `*`.
+
+    `tr -d '*' < VoyageOfTheBeagle.txt`
+
+-   Show the command that uses `tr` to squeeze every instance of `--` to `-`.
+
+    `tr -s '-' < VoyageOfTheBeagle.txt`
+
+5.  Redirection is one of the simple yet powerful features of Unix. Show the commands that you would use to carry out the following operations:
+
+-   Create an empty file in your current location called `bilby.txt`.
+
+    `touch bilby.txt`
+
+-   Use `echo` and the redirect operator to add your name to the first line of this file.
+
+    `echo "Leo" > bilby.txt`
+
+-   Use the redirect append operator and `date` to add the current date to this file.
+
+    `date >> bilby.txtcat bilby.txt`
+
+6.  Navigate to the directory `~/example_directory/foo`. Explain the different results you expect when using the following commands. (Hint: you can try them out if you are not sure. However, most of these commands will alter the organization of files, so remember to re-set everything back to the original state before trying the next command. To save a copy of the current directory structure, redirect `ls -a` for `~/example_directory/foo` and `~/example_directory/bar` into a text file that you create; these are the only directories that will be affected.)
+
+-   `$ mv rocky-the-movie.txt ../bar` and `$ cp rocky-the-movie.txt ../bar`
+
+    `mv rocky-the-movie.txt ../bar` moves the file from `foo` to `bar`. After this, `rocky-the-movie.txt` no longer exists in `foo`; it’s only in `bar`.
+
+    `cp rocky-the-movie.txt ../bar` copies the file from `foo` to `bar`. After this, `rocky-the-movie.txt` exists in both `foo` and `bar`.
+
+-   `$ mv rocky-the-movie.txt ../bar` and `$ mv rocky-the-movie.txt another.txt`
+
+    `mv rocky-the-movie.txt ../bar` moves the file into `bar` as `rocky-the-movie.txt`
+
+    `mv rocky-the-movie.txt another.txt` renames the file within the same directory from `rocky-the-movie.txt` to `another.txt`
+
+-   `$ cp rocky-the-movie.txt ../bar/another.txt` and `$ cp rocky-the-movie.txt another.txt`
+
+    `cp rocky-the-movie.txt ../bar/another.txt` copies `rocky-the-movie.txt` into `bar` and renames it to `another.txt`. Original remains in `foo`.
+
+    `cp rocky-the-movie.txt another.txt` copies the file within the same directory but renames it to `another.txt`. Now `foo` contains both `rocky-the-movie.txt` and `another.txt`
