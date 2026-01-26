@@ -1,0 +1,112 @@
+---
+title: "Problem Set 15"
+author: "Leo Camino, ltc31"
+date: today
+date-format: iso
+format: 
+  html:
+    embed-resources: true
+editor: source
+---
+
+### 1. What does the `--complement` option to the `cut` command do?
+
+`cut --complement`: what it does and why it’s useful
+
+**What it does:**\
+`cut` selects columns (fields) from a delimited file. The option `--complement` inverts the selection: print all fields except the ones you specify. This is useful when you want to drop a few columns without having to list *all* the columns you want (more robust if the file gets new columns or the column order changes).
+
+**Example:** Drop columns 1 and 3 (keep all others) from a CSV:
+
+`cut -d',' -f1,3 --complement data.csv | head`
+
+### 2. Download `us-states.csv` (NYT rolling averages)
+
+a\) Show how to use `wget` to download `us-states.csv` directly within your VM
+
+I used the following command on powershell
+
+[`wget -O us-states.csv \  https://raw.githubusercontent.com/nytimes/covid-19-data/master/rolling-averages/us-states.csv`](wget -O us-states.csv https://raw.githubusercontent.com/nytimes/covid-19-data/master/rolling-averages/us-states.csv)
+
+b\) The directory https://github.com/nytimes/covid-19-data/tree/master/rolling-averages includes multiple data files on a per county basis: `us-counties-202*.csv`. Read the man pages for `wget` and show how you would use the `-i/--input-file` option to download all the data files listed on that web page.
+
+Since GitHub directories cannot be downloaded directly, the workflow is:
+
+1.   Manually collect the Raw URLs
+
+2.   Put them into a file called `urls.txt`
+
+3.   Use `wget -i urls.txt` to download them all
+
+### 3. Download all `us-counties-202*.csv` using `wget -i`
+
+When using `grep` to filter rows in a tabular data file, header lines are typically lost. For example, the first few lines of the file `us-states.csv` look like this:
+
+```         
+$ head -4 us-states.csv  date,geoid,state,cases,cases_avg,cases_avg_per_100k,deaths,deaths_avg,deaths_avg_per_100k 2020-01-21,USA-53,Washington,1,0.14,0,0,0,0 2020-01-22,USA-53,Washington,0,0.14,0,0,0,0 2020-01-23,USA-53,Washington,0,0.14,0,0,0,0
+```
+
+If we filter this with `grep` to get all the data from 2021, the resulting output looks like this:
+
+```         
+$ grep "^2021" us-states.csv | head -4 2021-01-01,USA-69,Northern Mariana Islands,0,0.88,1.62,0,0,0 2021-01-01,USA-66,Guam,9,8.29,4.92,0,0.14,0.08 2021-01-01,USA-72,Puerto Rico,763,804.29,23.75,18,12.71,0.38 2021-01-01,USA-78,Virgin Islands,5,8.14,7.66,0,0,0
+```
+
+**Task:** Using core Unix commands, show how to generate a derived file that includes just observations from 2021, but that also includes the original header line.
+
+The command I used was:
+
+`awk -F',' 'NR==1 || $1 ~ /^2021-/' us-states.csv > us-states-2021.csv`
+
+-   `NR==1` preserves the header.
+
+<!-- -->
+
+-   `$1 ~ /^2021-/` only keeps rows where the **first** column starts with `2021-`, avoiding accidental matches in other columns.
+
+-   `-F','` ensures we’re checking the first **field**, not just any text in the line.
+
+### 4. Using the NY Times `us-states.csv` data file:
+
+a.  How many “states” are represented in the `us-states.csv` data file?
+
+    `cut -d',' -f3 us-states.csv | tail -n +2 | sort -u | wc -l`\
+    56 "states".
+
+b.  Show how to derived an alphabetically sorted file with the names of each “state” in the data
+
+    `cut -d',' -f3 us-states.csv | tail -n +2 | sort -u > states_alphabetical.txthead -20 states_alphabetical.txt`
+
+    Return from PowerShell: Alabama Alaska American Samoa Arizona Arkansas California Colorado Connecticut Delaware District of Columbia Florida Georgia Guam Hawaii Idaho Illinois Indiana Iowa Kansas Kentucky
+
+c.  Show how to extract all the lines of the CSV file giving information about cases/deaths in North Carolina in December 2021.
+
+    `awk -F',' 'NR==1 || ($1 ~ /^2021-12-/ && $3=="North Carolina")' \`
+
+    `us-states.csv > us-states_NC_2021-12.csv`
+
+    -   `NR==1` keeps header
+
+    <!-- -->
+
+    -   `$1 ~ /^2021-12-/` filters **date** column to December 2021
+
+    <!-- -->
+
+    -   `$3=="North Carolina"` filters the **state** column
+
+d.  Show how to sort `us-states.csv` by the `deaths_avg_per_100k` column with the largest values of this variable at the top of the output
+
+    `{ head -n1 us-states.csv tail -n +2 us-states.csv | sort -t',' -k9,9nr; } \ > us-states_sorted_by_deaths_avg_per_100k.csv`
+
+    -   `-t','` sets delimiter
+
+    <!-- -->
+
+    -   `-k9,9n` numeric sort by column 9
+
+    <!-- -->
+
+    -   `r` reverse (descending)
+
+It was hard to make the last two questions!
