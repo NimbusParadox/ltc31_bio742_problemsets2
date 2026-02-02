@@ -1,0 +1,120 @@
+---
+title: "Problem Set 15"
+author: "Leo Camino, ltc31"
+date: today
+date-format: iso
+format: 
+  html:
+    embed-resources: true
+editor: source
+---
+
+## **Problems**
+
+1.  Print some non-standard characters using their Unicode values. For each character, show the code that you would use to `echo` the character to the command line (STDOUT).
+
+    -   ü – lower-case u with an umlaut.
+
+        ```{r}
+        #printf '\u00FC\n'
+        #ü
+        ```
+
+    -   symbols for female and male.
+
+        ```{r}
+        #printf '\u2640\n'
+        #♀
+
+        #printf '\u2642\n'
+        #♂
+        ```
+
+    -   ˚ – the degree symbol.
+
+        ```{r}
+        #printf '\u00B0\n'
+        #°
+        ```
+
+    -   The mathematical symbol for the set of real numbers.
+
+        ```{r}
+        #printf '\u02DA\n'
+        #ℝ
+        ```
+
+    -   The mathematical symbol for set union.
+
+        ```{r}
+        #printf '\u222A\n'
+        #∪
+        ```
+
+2.  Tomorrow is Chinese New Year, and we will slither into the Year of the Snake. In a slightly more challenging exercise, find some Unicode symbols that celebrate this event. Show the code you would use to echo each character to the command line.
+
+    -   The emoji for snake.
+
+        ```{r}
+        #printf '\U0001F40D\n
+        #🐍
+        ```
+
+    -   The Chinese character for snake (or year of the snake if you prefer).
+
+        ```{r}
+        #printf '\u86C7\n'
+        #蛇
+        ```
+
+    -   The emoji that represents your reaction to seeing a snake.
+
+        ```{r}
+        #printf '\u86C7\u5E74\n'
+        #蛇年
+        ```
+
+3.  For this problem, work with the file `IOC_14.2.csv` that we used last week in class (the original, not the “clean” version we created).
+
+    -   Examine the file with the command line tool of your choice and note that column 5 has the header name `SP; Extinct (†)`. On a small subset of rows, this column contains the symbol `†`, which indicates that the taxon is extinct. Show the code you would use to count the number of lines containing `†` in column 5 using `grep`. Report the number you get.
+
+        ```{r}
+
+        # grep -Pc '^(?:[^,]*,){4}[^,]*\x{2020}' 
+        # IOC_14.2.csv
+        ```
+
+    -   Non-standard characters can complicate downstream analysis of data. Show the code you would use to replace every `†` with `E` using `tr`. Use the Unicode representation for `†`, not the character itself.
+
+        ```{r}
+        #tr $'\u2020' 'E' < IOC_14.2.csv > IOC_14.2_E.csv
+        ```
+
+    -   Column 10 lists the “Authority” for each taxon. This is the name of author who formally described that taxon. How many entries were made by Müller? How many by Peréz?
+
+        ```{r}
+        #awk -F',' '$9 ~ /Müller/ {c++} END{print c}' IOC_14.2.csv
+        #258
+
+
+        #awk -F',' '$9 ~ /Pérez/ {c++} END{print c}' IOC_14.2.csv
+        #1
+        ```
+
+4.  For this problem, work with the `saccharomyces_cerevisiae_R64-5-1_20240529.gff` file that we worked with last week in class (either the original or the “clean” version). Examine the file and note that column 1 (chromosome number) is a mix of characters and Roman numerals. This makes it difficult to carry out simple tasks like ordering by chromosome. Your task here is to design an approach that uses `sed` to replace values in column 1 with integers that correspond to chromosome number.
+
+    -   Show the code that would replace all cases of `chrI` with `1` in column 1. Hint: this is harder than it sounds: don’t convert `chrIII` to `1II`.
+
+        ```{r}
+        # sed -E $'s/^chrI\t/1\t/' yeast.gff
+        ```
+
+    -   You could manually repeat this process for other chromosomes, but don’t do that now! We will learn how to write loops in our next class session. Instead, outline an *overall* strategy to replace the value in column 1 for each chromosome with the corresponding integer.
+
+        I would take advantage of the fact that a GFF file is tab‑delimited, so chromosome information is always stored entirely in column 1. To avoid accidentally modifying values like `chrIII` when I only want to replace `chrI`, I would anchor each substitution to the start of the line and require a tab character immediately after the chromosome name. This ensures that only complete chromosome identifiers in column 1 are replaced.
+
+        I would write a `sed` script containing a series of substitution commands, one per chromosome, that map each Roman‑numeral chromosome (e.g. `chrI`, `chrII`, …, `chrXVI`) to its corresponding integer. Each rule would have the form `^chrX\t → 10\t`, so that the replacement only occurs when the chromosome name is the entire first field.
+
+        To make the substitutions robust, I would list chromosomes with longer Roman numerals before shorter ones (for example, `chrXVI` before `chrXI` and `chrI`). While anchoring to the tab already prevents partial matches, ordering the rules this way adds an extra layer of safety.
+
+        I would store all substitutions in a separate `sed` script file and apply it to the GFF file in a single pass, either writing the result to a new file or editing the original file in place with a backup. This approach cleanly converts all chromosome identifiers to integers and makes the file easy to sort or analyze numerically by chromosome.
