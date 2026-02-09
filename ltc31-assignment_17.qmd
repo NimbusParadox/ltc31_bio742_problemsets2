@@ -1,0 +1,131 @@
+---
+title: "Problem Set 17"
+author: "Leo Camino, ltc31"
+date: today
+date-format: iso
+format: 
+  html:
+    embed-resources: true
+editor: source
+---
+
+## **Problems**
+
+1.  Show how to use `grep` to calculate the number of times the Ste12 DNA binding motif appears in the upstream region of the **first gene (YAR009C) in the table**. Account for variable positions in your count and make your regex as concise and readable as possible. Also make sure to deal with case!
+
+    ```{r}
+    #I found this section a little bit challenging already. 
+
+
+    #awk -F'\t' 'BEGIN{IGNORECASE=1} $1=="YAR009C"{print toupper($3)}' STE12_promoter_table.tsv \ grep -oE '[TA][GA]AAAC[AGT]' wc -l
+
+    #This is the line I used to account for variable positions. This returns "2"
+    ```
+
+2.  Write an Awk script, `uppercase_motif.awk`, that returns the 1st (systematic ID) and 3rd (nucleotide sequence) columns of an input file formatted like `STE12_promoter_table.csv` with the text in the third column converted to upper case.
+
+    ```{r}
+
+    #This is the following script I produced:
+
+    # uppercase_motif.awk
+    # Usage:
+    #   awk -f uppercase_motif.awk -F'\t' STE12_promoter_table.tsv
+
+    #BEGIN { FS = OFS = "\t" }
+
+    #NR == 1 {
+        # If there's a header, pass through a two-col header; else continue normally
+    #    if ($1 ~ /systematic/i && $3 ~ /(sequence|upstream)/i) {
+    #        print $1, $3
+    #        next
+    #    }
+    #}
+    #{
+    #    print $1, toupper($3)
+    #}
+
+    ```
+
+    I also run the following command:
+
+    ```{r}
+    #awk -f uppercase_motif.awk -F'\t' STE12_promoter_table.tsv > uppercase_output.tsv
+    ```
+
+    And finally I confirmed I had the new file `uppercase_output.tsv`
+
+3.  Write an Awk script, `count_motif.awk`, that calculates the number of Ste12 DNA binding motifs found in the upstream region of each gene in `STE12_promoter_table.tsv`. Account for variable positions in your count; also make sure to deal with case!
+
+    This is the script I produced for count_motif.awk.
+
+    ```{r}
+
+    # count_motif.awk
+    # Usage:
+    #   awk -f count_motif.awk -F'\t' STE12_promoter_table.tsv
+
+    #BEGIN {
+    #    FS = OFS = "\t"
+    #    print "systematic_name", "motif_count"
+    #    motif = "[TA][GA]AAAC[AGT]"
+    #}
+    #NR == 1 && $1 ~ /systematic/i && $3 ~ /(sequence|upstream)/i { next }
+
+    #{
+    #    seq = toupper($3)
+    #    c = gsub(motif, "&", seq)   # gsub returns the number of matches
+    #    print $1, c
+    #}
+    #``
+
+    ```
+
+    Your script should return a tab delimited table of the form:
+
+    ```         
+    systematic_name motif_count YAR009C          2 YBR067C          0 YCL027W          3 YDR365W-B        1 ...<output truncated>...
+    ```
+
+4.  Challenging: Write an Awk script, `motif_matches.awk`, that returns both the motif count and the found matches. Your output should return a tab-delimited table of the form:
+
+    ```         
+    systematic_name motif_count matches YAR009C 2   AGAAACT,aaaaacg, YBR067C 0    YCL027W 3   TGAAACA,TGAAACG,tgaaaca, YDR365W-B   1   tgaaacg,
+    ```
+
+    The Awk function `patsplit` (global substitution) can be used for splitting a string on a regex match. Read the [String Functions](https://www.gnu.org/software/gawk/manual/html_node/String-Functions.html) section of the [GNU Awk manual](https://www.gnu.org/software/gawk/manual/gawk.html) for more info. Hint: The `seps` array in the argument to `patsplit` is where you’ll find the specific matches found by your regex.
+
+    I tried, but had several issues on this code:
+
+```{r}
+
+# motif_matches.awk
+
+#BEGIN {
+#    FS = OFS = "\t"
+#    print "systematic_name", "motif_count", "matches"
+#    motif = "[TA][GA]AAAC[AGT]"
+#}
+#NR == 1 && $1 ~ /systematic/i && $3 ~ /(sequence|upstream)/i { next }
+
+#{
+#    orig = $3
+#    up   = toupper(orig)
+#    matches = ""
+#    count = 0
+#    pos = 1
+
+  
+#    while (match(substr(up, pos), motif)) {
+#        start = pos + RSTART - 1
+#        mlen  = RLENGTH
+#        m = substr(orig, start, mlen)
+#        matches = matches m ","
+#        count++
+#        pos = start + 1   # allow overlaps (safe here)
+#    }
+
+#    print $1, count, matches
+#}
+
+```
