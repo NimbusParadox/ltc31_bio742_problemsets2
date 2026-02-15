@@ -1,0 +1,155 @@
+---
+title: "Assignment 18"
+author: "Leo Camino, ltc31"
+date: today
+date-format: iso
+format: 
+  html:
+    embed-resources: true
+editor: source
+---
+
+## **Problems**
+
+1.  Write a bash function to search for a string within a file and report on the results. Give your function a descriptive name. It should do the following:
+
+    -   Accept 3 arguments as inputs : search string, input file name, and output file name
+
+    -   Calculate the number of lines where the search string occurs in the input file
+
+    -   Append a single line containing the file name, search string, number of matching lines to the output file. Format the output to be compatible with a `.csv` file.
+
+    **Solution**
+
+    ```{r}
+
+    #This is the code that I came up with:
+
+    # search_to_csv() {
+    #   search="$1"
+    #   input_file="$2"
+    #   outputcsv="$3"
+    #   c=$(grep -F -c -- "$search" "$input_file")
+    #   printf '%s,%s,%s\n' "$input_file" "$search" "$c" >> "$outputcsv"
+    # }
+
+
+    ```
+
+2.  Next, test your function to make sure it is working as intended. Show code for testing. Test your function using some “corner cases” (e.g., no matches).
+
+    ```{r}
+
+    #This is what I did on Visual Studio:
+
+    # (base) ltc31@vcm-51565:~$ code search_to_csv.sh 
+    # (base) ltc31@vcm-51565:~$ chmod +x search_to_csv.sh
+    # (base) ltc31@vcm-51565:~$ source ./search_to_csv.sh
+
+    #Here I will create a .txt file with some words.
+
+    # (base) ltc31@vcm-51565:~$ echo -e "butterfly\nmoth\nbutterfly wings\nfrog" > test.txt
+
+    #This is the actual test
+    # (base) ltc31@vcm-51565:~$ search_to_csv "butterfly" test.txt results.csv
+
+    #Here I check the results.csv file.
+    # (base) ltc31@vcm-51565:~$ cat results.csv
+    # test.txt,butterfly,2
+
+    #it works!
+
+    ```
+
+    I have decided now to create some other files to test special cases:
+
+    Basic File
+
+    ```{r}
+    # cat > a.txt << 'EOF'
+    # butterfly
+    # moth
+    # butterfly wings
+    # frog
+    # EOF
+    ```
+
+    ```{r}
+    #Test on 0 results
+    # search_to_csv "dragonfly" a.txt results.csv
+    # a.txt,dragonfly,0
+    # Works!
+    ```
+
+    Special characters + commas
+
+    ```{r}
+
+    # Special characters + commas
+    # cat > specials.txt << 'EOF'
+    # literal .*
+    # square [brackets]
+    # dollar $ sign
+    # quote " double
+    # comma, inside
+    # EOF
+    ```
+
+    ```{r}
+    #Test on special characters
+
+    # search_to_csv ".*" specials.txt results.csv
+    # specials.txt,.*,1
+
+    # search_to_csv "[brackets]" specials.txt results.c
+    # specials.txt,[brackets],1
+    ```
+
+    Special cases
+
+    ```{r}
+
+    #Special case test
+    # cat > case.txt << 'EOF'
+    # butterfly
+    # BUTTERFLY
+    # EOF
+    ```
+
+    ```{r}
+    # Test on lowercase matches
+
+    # search_to_csv "butterfly" case.txt results.cs
+    # case.txt,butterfly,1
+    ```
+
+3.  Now that you are confident that your function is working properly, the next step is to make it able to diagnose and report on problems with the input string and files. Add code to trap at least one kind of problem that might arise with the inputs. Include an `exit` command and a description of the error so that future users can fix the problem.
+
+    ```{r}
+
+    # search_to_csv() {
+    #   search="$1"
+    #   input_file="$2"
+    #   outputcsv="$3"
+
+      # Error check: input file must exist
+    #  if [ ! -f "$input_file" ]; then
+    #    echo "Error: input file '$input_file' does not exist." >&2
+    #    exit 1
+    #  fi
+
+    #  c=$(grep -F -c -- "$search" "$input_file")
+    #  printf '%s,%s,%s\n' "$input_file" "$search" "$c" >> "$outputcsv"
+    # }
+
+    ```
+
+4.  Create a bash script to filter records in the yeast `.gff` file that we have been working with in class based on the systematic gene name. Normally, filtering tablular data is fairly straightforward, but in this case we have a complication: the systematic gene name is embedded within the ninth (attribute) column, which contains a list of semicolon-delimited items. The systematic name has the form `ID=SystematicName` (e.g., `ID=YALO69W`). Your script should accept two arguments: 1) a `.gff` file; and 2) a file of systematic gene names (1 per line), and produce a file containing the entire line when there is a match with one of the systematic names. Let’s break that down into steps:
+
+    -   Use the awk script that was introduced at the end of the class on February 4th to extract lines that match the a search term in column 9.
+
+    -   Wrap the awk script in a for loop where the set is the list of systematic gene names in the input file.
+
+    -   Test your script with different inputs to make sure it is working as expected.
+
+    I found this very hard, and I was actually unable to figure out how to do this section.
