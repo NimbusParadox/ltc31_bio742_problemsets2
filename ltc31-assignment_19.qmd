@@ -1,0 +1,208 @@
+---
+title: "Problem Set XX"
+author: "Your Name, NetID"
+date: today
+date-format: iso
+format: 
+  html:
+    embed-resources: true
+editor: source
+---
+
+# Problems
+
+[Imagemagick](https://imagemagick.org/) is a command line tool for working with images. Like seqkit, Imagemagick uses sub-commands to provide the many different image manipulation utilties it provides.
+
+1.  Following the same basic steps we reviewed in our [data lunch on creating conda environments](https://github.com/Bio724D/Bio724D_2024_2025/blob/main/class_notes/unix_managing_packages_with_conda.md), carry out the following. For steps a-c show the commands you executed but don’t include the output:
+
+    a.  Create a new conda environment called `imaging`
+
+        ```{bash}
+        conda create -n imaging -y
+        ```
+
+    b.  Activate the imaging environment
+
+        ```{bash}
+        conda activate imaging
+        ```
+
+    c.  Install imagemagick using the standard conda `install` command
+
+        ```{bash}
+        conda install -y imagemagick
+        ```
+
+    d.  Confirm Imagemagick is properly installed using the command `magick --version` (paste the output output into a codeblock)
+
+        ```{bash}
+        magick --version                                                                                                                                                                                                                                                       
+        Version: ImageMagick 7.1.2-13 Q16-HDRI x86_64 2fae24192:20260118 https://imagemagick.org                                                          
+                                                                                                                
+        Copyright: (C) 1999 ImageMagick Studio LLC                                                                                                                                                                                                                                                                                                                        
+        License: https://imagemagick.org/license/                                                                                                                                                                                                                                                                                                                         
+        Features: Cipher DPC HDRI                                                                                                                                                                                                                                                                                                                                         
+        Delegates (built-in): bzlib fftw freetype gvc heic jbig jng jp2 jpeg lzma png tiff webp x xml zlib zstd                                                                                                                                                                                                                                                           
+        Compiler: gcc (14.3)                                                 
+        ```
+
+2.  Using `wget` to download the `example_images.zip` file from the course wiki and unzip it in your home directory (this will create the directroy `~/example_images`)
+
+    ```{bash}
+    wget https://github.com/Bio724D/Bio724D_2025_2026/raw/refs/heads/main/data/example_images.zip
+    ```
+
+3.  From inside the directory `~/example_images` show how to use `find` to list all the JPEG (.jpg) images in sub-directories of example_images
+
+    ```{bash}
+    find . -mindepth 2 -type f \( -iname "*.jpg" -o -iname "*.jpeg" \)
+
+    ./dogs/chester_sitting.jpg
+    ./dogs/chester.jpg
+    ./dogs/dermot.jpg
+    ./yeast/cryptococcus/crypt_capsule_shedding.jpg
+    ./yeast/cryptococcus/crypto_capsule.jpg
+    ./yeast/saccharomyces/100gRandomized384_SCLD_Day5_001.jpg
+    ./yeast/saccharomyces/yeast_colonies.jpg
+    ./yeast/saccharomyces/color_complex_colony.jpg
+    ```
+
+4.  Read the imagemagick tutorial on image resizing (https://usage.imagemagick.org/resize/#resize) and the show how to do the following:
+
+    a.  Show how to use imagemagick to resize the image `~/example_images/dogs/chester.jpg` to 50% of it’s original size (maintain the image’s aspect ratio).
+
+        ```{bash}
+        magick ~/example_images/dogs/chester.jpg -resize 50% ~/example_images/dogs/chester_resized_50perc.jpg
+        ```
+
+    b.  Show how to use imagemagick to resize the image `~/example_images/dogs/chester.jpg` to have a maximum dimension of 300 pixels (maintain the image’s aspect ratio).
+
+        ```{bash}
+        magick ~/example_images/dogs/chester.jpg -resize "300x300>" ~/example_images/dogs/chester_max300.jpg
+        ```
+
+5.  Read the man page for the built-in Unix command `basename`.
+
+    a.  What is your understanding of what `basename` does? Illustrate it with an example.
+
+        The Unix command **`basename`** takes a full file path and returns only the final filename, removing all the directory components that come before it. For example:
+
+        ```{bash}
+        basename /home/ltc31/example_images/dogs/chester.jpg
+        chester.jpg
+
+        #his strips off /home/leo/example_images/dogs/ and leaves only the filename.
+        ```
+
+    b.  What does the `-s` option of `basename` do? Show how you can use the `-s` option to get the name of a JPEG file without the ending `.jpg` suffix
+
+        the `-s` option tells `basename` to strip a specific suffix from the filename if it matches exactly. This is useful for removing file extensions like `.jpg`. For example:
+
+        ```{bash}
+        basename -s .jpg /home/leo/example_images/dogs/chester.jpg
+        #output would be then
+        chester
+        ```
+
+6.  Write a script (`resize_jpeg.sh`) that takes two arguments:
+
+    1.  first argument – a full textual filepath to a JPEG image (e.g. `example_images/dogs/chester.jpg`)
+
+        ```{bash}
+
+
+        # capture first argument (input JPEG path)
+        infile="$1"
+
+        ```
+
+    2.  second argument – an integer value that specifies the percent to resize to
+
+        ```{bash}
+
+        # capture second argument (resize percent)
+        percent="$2"
+
+        ```
+
+    Your script should:
+
+    -   include an `if` statement to make sure it received two arguments
+
+        ```{bash}
+
+        if [[ $# -ne 2 ]]; then
+          echo "Usage: $0 <input_jpeg_path> <percent_integer>"
+          exit 1
+        fi
+
+        ```
+
+    -   The script should use imagemagick to create a resized version of the image a folder name `resized_images`. The name of the resized image should follow this template:
+
+        -   If the original input file basename was `chester.jpg` and the integer argument was 25, the output file’s basename should be `chester_resized_25perc.jpg`
+
+            **Full code**
+
+            ```{bash}
+
+            !/usr/bin/env bash
+
+            # 1) ensure two args
+            if [[ $# -ne 2 ]]; then
+              echo "Usage: $0 <input_jpeg_path> <percent_integer>"
+              exit 1
+            fi
+
+            # 2) capture args
+            infile="$1"
+            percent="$2"
+
+            # validate integer percent
+            if ! [[ "$percent" =~ ^[0-9]+$ ]]; then
+              echo "Error: percent must be an integer (e.g., 25)"
+              exit 2
+            fi
+
+            # 4) prepare output directory next to input
+            in_dir="$(dirname "$infile")"
+            base="$(basename "$infile")"
+            name_noext="${base%.*}"
+            out_dir="${in_dir}/resized_images"
+            mkdir -p "$out_dir"
+
+            # 5) construct output name
+            outfile="${out_dir}/${name_noext}_resized_${percent}perc.jpg"
+
+            # 6) resize using ImageMagick v7
+            magick "$infile" -resize "${percent}%" "$outfile"
+
+            echo "Created: $outfile"
+            ```
+
+7.  Show how to use `find` and its `-exec` option to transform all the JPEG images in `example_images` to 25% scaled versions. To exclude JPEGs in the output directory `resized_images` you can add the `find` flags `-not -path "./resized_images/*"` to your command as discussed on [StackOverflow](https://stackoverflow.com/a/15736463).
+
+    ```{bash}
+
+    cd ~/example_images
+
+    find . -type f \( -iname "*.jpg" -o -iname "*.jpeg" \) \
+      -not -path "./resized_images/*" \
+      
+      -exec ./resize_jpeg.sh "{}" 25 \;
+
+    ```
+
+8.  TRICKY: Show how to use both `find` and `parallel` together to resize all the images in the folder `example_images` by values of 10%, 25%, and 50%. Both `find` and `parallel` use `{}` as a placeholder, so change the placeholder symbol to double carats (`^^`) using the `-I` flag. Again, make sure to exclude the directory `resized_images`.
+
+    This is the script I came up with Copilot's help
+
+```{bash}
+
+cd ~/example_images
+
+find . -type f \( -iname "*.jpg" -o -iname "*.jpeg" \) \
+  -not -path "./resized_images/*" -print0 \
+  | parallel -0 -I ^^ 'for p in 10 25 50; do ./resize_jpeg.sh ^^ "$p"; done'
+
+```
