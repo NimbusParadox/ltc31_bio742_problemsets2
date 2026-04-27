@@ -1,0 +1,270 @@
+---
+title: "Spring Notebook"
+author: "Leo"
+format: html
+editor: visual
+---
+
+## Learning Notebook – Unix, Bash, and Python
+
+This notebook summarizes core concepts, commands, and tools learned during the Spring 2026 portion of the course. Each section highlights key utilities and a brief explanation of their purpose.
+
+## 1. Virtual Machines and Unix Fundamentals
+
+**Virtual Machine (VM)**\
+A virtualized Linux environment used to run Unix commands and software independently from the local operating system.
+
+**Terminal / Shell**\
+The command‑line interface used to interact with the operating system.
+
+**pwd**\
+Prints the current working directory.
+
+**ls**\
+Lists files and directories in the current directory.
+
+**cd**\
+Changes the current directory.
+
+**man**\
+Displays the manual page for a command.
+
+## 2. Interacting with the VM Using VS Code
+
+**VS Code Remote SSH**\
+Allows editing files and running commands on a remote VM through VS Code.
+
+**Integrated Terminal**\
+Runs shell commands directly inside VS Code.
+
+**File Explorer Panel**\
+Provides a graphical view of files and directories on the VM.
+
+## 3. Data Wrangling with Core Unix Tools
+
+**cat**\
+Displays the contents of a file.
+
+**less**\
+Views file contents one page at a time.
+
+**head / tail**\
+Displays the first or last lines of a file.
+
+**wc**\
+Counts lines, words, and characters in a file.
+
+**sort**\
+Sorts lines of text.
+
+**uniq**\
+Filters or counts repeated lines.
+
+**cut**\
+Extracts specific columns from text.
+
+## 4. Regular Expressions, grep, and sed
+
+**Regular expressions (regex)**\
+Patterns used to match text.
+
+**grep**\
+Searches for patterns in files.
+
+**grep -v**\
+Excludes matching lines.
+
+**grep -E**\
+Enables extended regular expressions.
+
+**sed**\
+Stream editor for text transformation.
+
+**sed 's/pattern/replacement/'**\
+Replaces text within a file or stream.
+
+## 5. Program and Environment Management
+
+**apt**\
+System‑level package manager for Linux.
+
+**apt install**\
+Installs software system‑wide.
+
+**conda**\
+Environment and package manager for Python and other software.
+
+**conda create**\
+Creates isolated environments.
+
+**conda activate**\
+Activates a conda environment.
+
+## 6. Awk
+
+**awk**\
+Pattern scanning and text processing language.
+
+**\$1, \$2, ...**\
+Refers to columns in text files.
+
+**BEGIN / END**\
+Defines actions before or after processing input.
+
+**awk '{print \$1}'**\
+Prints the first column.
+
+## 7. Bash Scripting
+
+**#!/bin/bash**\
+Shebang line specifying the shell interpreter.
+
+**Variables**\
+Store values for reuse.
+
+**for loops**\
+Iterate over lists or ranges.
+
+**if statements**\
+Conditional execution.
+
+**chmod +x**\
+Makes a script executable.
+
+## 8. Integrating Tools and Building Pipelines
+
+**Pipes (\|)**\
+Passes output of one command as input to another.
+
+**Redirection (\>, \>\>, \<)**\
+Controls input and output streams.
+
+**Command chaining**\
+Combines multiple tools to build workflows.
+
+**Bash pipelines**\
+Used to automate text processing and data analysis tasks.
+
+## 9. Duke Computing Cluster (DCC)
+
+**SLURM**\
+Job scheduler used on the DCC.
+
+**sbatch**\
+Submits batch jobs.
+
+**squeue**\
+Checks job status.
+
+**scancel**\
+Cancels jobs.
+
+**Globus**\
+Tool for transferring large datasets.
+
+## 10. Introduction to Python
+
+**python**\
+Starts the Python interpreter.
+
+**print()**\
+Outputs text to the console.
+
+**import**\
+Loads modules and packages.
+
+**help()**\
+Displays documentation.
+
+## 11. Python Data Types and Data Structures
+
+**int, float, str**\
+Basic data types.
+
+**list**\
+Ordered, mutable collection.
+
+**tuple**\
+Ordered, immutable collection.
+
+**dict**\
+Key‑value mapping.
+
+**set**\
+Unordered collection of unique elements.
+
+## 12. Python Control Flow
+
+**if / elif / else**\
+Conditional statements.
+
+**for loops**\
+Iterate over sequences.
+
+**while loops**\
+Repeat actions while a condition is true.
+
+**break / continue**\
+Control loop behavior.
+
+## 13. NumPy and Matplotlib
+
+**NumPy**\
+Library for numerical computing.
+
+**numpy.array()**\
+Creates numerical arrays.
+
+**Matplotlib**\
+Library for plotting.
+
+**plt.plot()**\
+Creates line plots.
+
+**plt.show()**\
+Displays figures.
+
+## 14. Pandas
+
+**pandas.DataFrame**\
+Tabular data structure.
+
+**read_csv()**\
+Loads tabular data.
+
+**head()**\
+Views first rows.
+
+**groupby()**\
+Groups data for aggregation.
+
+**merge()**\
+Combines datasets.
+
+## 15. Useful Python Packages and Tools
+
+**os**\
+Interacts with the operating system.
+
+**sys**\
+Handles system‑specific parameters.
+
+**argparse**\
+Parses command‑line arguments.
+
+**glob**\
+Finds files using patterns.
+
+## 16. Object‑Oriented Programming and Advanced Python
+
+**Class**\
+Defines objects with attributes and methods.
+
+**init()**\
+Initializes objects.
+
+**Methods**\
+Functions associated with classes.
+
+**Modules and packages**\
+Organize Python code into reusable units.
